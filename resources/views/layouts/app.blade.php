@@ -30,7 +30,7 @@
             $currentPage = trim($__env->yieldContent('page')) ?: 'landing';
         @endphp
 
-        @if ($currentPage !== 'landing')
+        @if (!in_array($currentPage, ['landing', 'login', 'register', 'dashboard']))
             <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between h-20 gap-4">
                     <div class="flex items-center gap-4">
@@ -56,7 +56,7 @@
             </header>
         @endif
 
-        @if ($currentPage === 'landing')
+        @if (in_array($currentPage, ['landing', 'login', 'register', 'dashboard']))
             <div id="root" data-page="@yield('page', 'landing')" data-role="@yield('role', 'CLIENT')" class="min-h-screen"></div>
         @else
             @yield('content')
