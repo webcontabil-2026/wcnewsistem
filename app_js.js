@@ -1,0 +1,3 @@
+import "/resources/js/main.tsx";
+
+//# sourceMappingURL=data:application/json;base64,eyJtYXBwaW5ncyI6IkFBQUEsT0FBTyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJhcHAuanMiXSwidmVyc2lvbiI6Mywic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFwiLi9tYWluLnRzeFwiO1xuIl19

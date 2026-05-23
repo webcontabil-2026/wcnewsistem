@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,6 +6,66 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+    --color-brand: #0c447c;
+    --color-brand-light: #185fa5;
+    --color-success: #22c55e;
+    --color-danger: #ef4444;
+}
+
+/* Theme variables and helpers */
+:root {
+    --wc-bg: #dde5eb; /* light background */
+    --wc-text-high: #152b4a; /* primary text */
+    --wc-text-low: #507d99; /* secondary text */
+    --wc-surface: rgba(255, 255, 255, 0.75);
+    --wc-surface-strong: rgba(255, 255, 255, 0.92);
+}
+
+body.theme-dark {
+    --wc-bg: #152b4a; /* dark blue background */
+    --wc-text-high: #dde5eb;
+    --wc-text-low: #bdd2e2;
+    --wc-surface: rgba(255, 255, 255, 0.08);
+    --wc-surface-strong: rgba(255, 255, 255, 0.14);
+}
+
+/* Apply variables */
+body {
+    background: var(--wc-bg);
+    color: var(--wc-text-high);
+}
+
+.theme-text-high {
+    color: var(--wc-text-high) !important;
+}
+
+.theme-text-low {
+    color: var(--wc-text-low) !important;
+}
+
+.theme-link {
+    color: color-mix(in srgb, var(--wc-text-high) 80%, var(--wc-text-low) 20%);
+}
+
+.header-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.brand-bg {
+    background: linear-gradient(
+        180deg,
+        rgba(12, 68, 124, 0.95),
+        rgba(24, 95, 165, 0.9)
+    );
+}
+
+.brand-bg-square {
+    background: #0c447c;
+    border-radius: 24px;
 }
