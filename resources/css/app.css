@@ -69,3 +69,30 @@ body {
     background: #0c447c;
     border-radius: 24px;
 }
+
+.theme-border {
+    border-color: var(--wc-surface) !important;
+}
+
+body.theme-dark .theme-border {
+    border-color: var(--wc-surface) !important;
+}
+
+.bg-card {
+    background-color: var(--wc-surface);
+}
+
+body.theme-dark .bg-card {
+    background-color: var(--wc-surface);
+}
+
+/* Header responsive to theme */
+header {
+    border-bottom-color: var(--wc-surface) !important;
+    background: var(--wc-surface-strong) !important;
+    backdrop-filter: blur(12px);
+}
+
+header button {
+    border-color: currentColor !important;
+}
