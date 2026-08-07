@@ -5,7 +5,6 @@
 
 import { ReactNode } from "react";
 import {
-    ShieldCheck,
     Activity,
     Users,
     Database,
@@ -16,6 +15,8 @@ import {
     ArrowRight,
 } from "lucide-react";
 import { User } from "../types";
+import ThemeToggle from "./ThemeToggle";
+import BrandLogo from "./BrandLogo";
 
 interface AdminDashboardProps {
     user: User;
@@ -54,12 +55,10 @@ export default function AdminDashboard({
     onLogout,
 }: AdminDashboardProps) {
     return (
-        <div className="min-h-screen flex flex-col font-mono text-slate-200">
+        <div className="system-layout min-h-screen flex flex-col font-mono">
             <header className="h-20 px-10 bg-white/5 backdrop-blur-md border-b border-white/10 flex items-center justify-between sticky top-0 z-10">
                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-success rounded-xl shadow-lg shadow-success/20">
-                        <ShieldCheck className="w-6 h-6 text-white" />
-                    </div>
+                    <BrandLogo size="admin" className="shadow-lg shadow-brand/20" />
                     <div className="flex flex-col">
                         <span className="font-black tracking-tighter text-xl text-white">
                             WEB_CONTABIL_ADMIN
@@ -69,13 +68,16 @@ export default function AdminDashboard({
                         </span>
                     </div>
                 </div>
-                <button
-                    onClick={onLogout}
-                    className="flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-all border border-white/10 px-4 py-2 rounded-xl backdrop-blur-xl hover:bg-white/5 uppercase tracking-widest"
-                >
-                    <LogOut className="w-3 h-3" />
-                    Terminate_Session
-                </button>
+                <div className="flex items-center gap-3">
+                    <ThemeToggle />
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-all border border-white/10 px-4 py-2 rounded-xl backdrop-blur-xl hover:bg-white/5 uppercase tracking-widest"
+                    >
+                        <LogOut className="w-3 h-3" />
+                        Terminate_Session
+                    </button>
+                </div>
             </header>
 
             <div className="flex-grow p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">

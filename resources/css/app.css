@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -10,51 +11,19 @@
         "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
-    --color-brand: #0c447c;
-    --color-brand-light: #185fa5;
-    --color-success: #22c55e;
-    --color-danger: #ef4444;
-}
-
-/* Theme variables and helpers */
-:root {
-    --wc-bg: #dde5eb; /* light background */
-    --wc-text-high: #152b4a; /* primary text */
-    --wc-text-low: #507d99; /* secondary text */
-    --wc-surface: rgba(255, 255, 255, 0.75);
-    --wc-surface-strong: rgba(255, 255, 255, 0.92);
-}
-
-body.theme-dark {
-    --wc-bg: #152b4a; /* dark blue background */
-    --wc-text-high: #dde5eb;
-    --wc-text-low: #bdd2e2;
-    --wc-surface: rgba(255, 255, 255, 0.08);
-    --wc-surface-strong: rgba(255, 255, 255, 0.14);
-}
-
-/* Apply variables */
-body {
-    background: var(--wc-bg);
-    color: var(--wc-text-high);
-}
-
-.theme-text-high {
-    color: var(--wc-text-high) !important;
-}
-
-.theme-text-low {
-    color: var(--wc-text-low) !important;
-}
-
-.theme-link {
-    color: color-mix(in srgb, var(--wc-text-high) 80%, var(--wc-text-low) 20%);
+    --color-brand: var(--theme-highlight);
+    --color-brand-light: var(--theme-highlight-hover);
+    --color-success: var(--theme-success);
+    --color-danger: var(--theme-danger);
 }
 
 .header-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
+    width: 118px;
+    height: 118px;
+    flex-shrink: 0;
+    background-color: var(--theme-logo-mark);
+    mask: url("/images/logo.svg") center / contain no-repeat;
+    -webkit-mask: url("/images/logo.svg") center / contain no-repeat;
 }
 
 .brand-bg {
@@ -66,6 +35,40 @@ body {
 }
 
 .brand-bg-square {
-    background: #0c447c;
-    border-radius: 24px;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: var(--theme-logo-tile);
+    border-radius: 18px;
+    transition: background-color 180ms ease;
+}
+
+/* Variações compactas da marca para os espaços internos do sistema. */
+.brand-logo {
+    --brand-logo-size: 40px;
+    width: var(--brand-logo-size);
+    height: var(--brand-logo-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: calc(var(--brand-logo-size) * 0.28);
+    background-color: var(--theme-logo-tile);
+    transition: background-color 180ms ease;
+}
+
+.brand-logo--footer { --brand-logo-size: 32px; }
+.brand-logo--client { --brand-logo-size: 40px; }
+.brand-logo--accountant { --brand-logo-size: 48px; }
+.brand-logo--admin { --brand-logo-size: 40px; }
+
+.brand-logo__symbol {
+    width: calc(var(--brand-logo-size) * 1.84);
+    height: calc(var(--brand-logo-size) * 1.84);
+    flex-shrink: 0;
+    background-color: var(--theme-logo-mark);
+    mask: url("/images/logo.svg") center / contain no-repeat;
+    -webkit-mask: url("/images/logo.svg") center / contain no-repeat;
 }

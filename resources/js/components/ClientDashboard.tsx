@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import { User, ReportData, Task } from "../types";
 import { cn } from "../lib/utils";
+import ThemeToggle from "./ThemeToggle";
+import BrandLogo from "./BrandLogo";
 
 interface ClientDashboardProps {
     user: User;
@@ -83,12 +85,10 @@ export default function ClientDashboard({
     const [activeTab, setActiveTab] = useState("inicio");
 
     return (
-        <div className="flex h-screen overflow-hidden text-slate-200">
+        <div className="system-layout flex h-screen overflow-hidden">
             <aside className="w-72 bg-white/5 backdrop-blur-2xl border-r border-white/10 flex flex-col hidden lg:flex">
                 <div className="p-8 flex items-center gap-3">
-                    <div className="p-2 bg-brand rounded-xl shadow-lg shadow-brand/40">
-                        <LayoutDashboard className="w-5 h-5 text-white" />
-                    </div>
+                    <BrandLogo size="client" className="shadow-lg shadow-brand/40" />
                     <span className="font-bold text-xl tracking-tighter text-white">
                         WebContabil
                     </span>
@@ -148,6 +148,7 @@ export default function ClientDashboard({
                     </div>
 
                     <div className="flex items-center gap-8">
+                        <ThemeToggle />
                         <button className="relative p-2 text-white/40 hover:text-brand transition-colors">
                             <Bell className="w-6 h-6" />
                             <span className="absolute top-2 right-2.5 w-2 h-2 bg-brand rounded-full border-2 border-slate-900 shadow-lg shadow-brand/20"></span>

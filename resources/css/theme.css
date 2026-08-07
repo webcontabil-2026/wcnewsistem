@@ -1,0 +1,192 @@
+/*
+ * Paleta global do WebContabil.
+ * A escala de azul é compartilhada pelos dois temas e todas as cores usam RGB.
+ */
+:root {
+    color-scheme: light;
+
+    /* Escala azul da marca: do tom mais claro ao mais escuro. */
+    --color-blue-50: rgb(239, 246, 255);
+    --color-blue-100: rgb(219, 234, 254);
+    --color-blue-200: rgb(191, 219, 254);
+    --color-blue-300: rgb(147, 197, 253);
+    --color-blue-400: rgb(96, 165, 250);
+    --color-blue-500: rgb(59, 130, 246);
+    --color-blue-600: rgb(37, 99, 235);
+    --color-blue-700: rgb(29, 78, 216);
+    --color-blue-800: rgb(30, 64, 175);
+    --color-blue-900: rgb(30, 58, 138);
+    --color-blue-950: rgb(23, 37, 84);
+
+    /* Cores semânticas do tema claro, com contraste alto para leitura. */
+    --theme-background: rgb(248, 250, 252);
+    --theme-surface: rgb(255, 255, 255);
+    --theme-surface-muted: rgb(239, 246, 255);
+    --theme-header: rgb(255, 255, 255);
+    --theme-text-primary: rgb(15, 23, 42);
+    --theme-text-secondary: rgb(51, 65, 85);
+    --theme-text-muted: rgb(71, 85, 105);
+    --theme-border: rgb(203, 213, 225);
+    --theme-highlight: var(--color-blue-700);
+    --theme-highlight-hover: var(--color-blue-800);
+    --theme-on-highlight: rgb(255, 255, 255);
+    --theme-success: rgb(21, 128, 61);
+    --theme-warning: rgb(180, 83, 9);
+    --theme-danger: rgb(185, 28, 28);
+    --theme-overlay: rgb(15 23 42 / 0.08);
+    --theme-logo-tile: var(--color-blue-700);
+    --theme-logo-mark: rgb(255, 255, 255);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Cores semânticas do tema escuro, baseadas na mesma escala azul. */
+    --theme-background: rgb(15, 23, 42);
+    --theme-surface: rgb(23, 37, 84);
+    --theme-surface-muted: rgb(30, 58, 138);
+    --theme-header: rgb(15, 23, 42);
+    --theme-text-primary: rgb(248, 250, 252);
+    --theme-text-secondary: rgb(219, 234, 254);
+    --theme-text-muted: rgb(191, 219, 254);
+    --theme-border: rgb(51, 65, 85);
+    --theme-highlight: var(--color-blue-400);
+    --theme-highlight-hover: var(--color-blue-300);
+    --theme-on-highlight: rgb(15, 23, 42);
+    --theme-success: rgb(74, 222, 128);
+    --theme-warning: rgb(251, 191, 36);
+    --theme-danger: rgb(248, 113, 113);
+    --theme-overlay: rgb(255 255 255 / 0.08);
+    --theme-logo-tile: var(--color-blue-200);
+    --theme-logo-mark: var(--theme-background);
+}
+
+html,
+body {
+    background-color: var(--theme-background);
+    color: var(--theme-text-primary);
+}
+
+body {
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
+.theme-text-high { color: var(--theme-text-primary) !important; }
+.theme-text-low { color: var(--theme-text-secondary) !important; }
+.theme-text-muted { color: var(--theme-text-muted) !important; }
+.theme-link { color: var(--theme-highlight); }
+.theme-link:hover { color: var(--theme-highlight-hover); }
+
+.theme-surface,
+.bg-card,
+.theme-block {
+    background-color: var(--theme-surface) !important;
+}
+
+.theme-surface-muted { background-color: var(--theme-surface-muted) !important; }
+.theme-border { border-color: var(--theme-border) !important; }
+
+.theme-header {
+    background-color: var(--theme-header) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.theme-highlight {
+    background-color: var(--theme-highlight) !important;
+    color: var(--theme-on-highlight) !important;
+}
+
+/* Estrutura visual compartilhada pelas áreas internas do sistema. */
+.system-layout {
+    background-color: var(--theme-background);
+    color: var(--theme-text-primary);
+}
+
+.system-layout aside,
+.system-layout header,
+.system-layout .system-panel {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+}
+
+/* Compatibilidade com componentes antigos que foram desenhados apenas para o tema escuro. */
+.system-layout .text-white,
+.system-layout .text-slate-200 {
+    color: var(--theme-text-primary) !important;
+}
+
+.system-layout .text-white\/10,
+.system-layout .text-white\/20,
+.system-layout .text-white\/30,
+.system-layout .text-white\/40,
+.system-layout .text-white\/50,
+.system-layout .text-white\/60,
+.system-layout .text-white\/70,
+.system-layout .text-white\/80 {
+    color: var(--theme-text-secondary) !important;
+}
+
+.system-layout .bg-white\/2,
+.system-layout .bg-white\/5,
+.system-layout .bg-white\/10 {
+    background-color: var(--theme-overlay) !important;
+}
+
+.system-layout .border-white\/5,
+.system-layout .border-white\/10,
+.system-layout .border-white\/20 {
+    border-color: var(--theme-border) !important;
+}
+
+.system-layout input,
+.system-layout textarea,
+.system-layout select {
+    color: var(--theme-text-primary);
+}
+
+.system-layout input::placeholder,
+.system-layout textarea::placeholder {
+    color: var(--theme-text-muted) !important;
+    opacity: 1;
+}
+
+/* Os gráficos também consomem a paleta global, inclusive no modo claro. */
+.system-layout .recharts-cartesian-grid line {
+    stroke: var(--theme-border) !important;
+}
+
+.system-layout .recharts-text {
+    fill: var(--theme-text-secondary) !important;
+}
+
+.system-layout .recharts-bar-rectangle path {
+    fill: var(--theme-highlight) !important;
+}
+
+.system-layout .recharts-line-curve {
+    fill: none !important;
+    stroke: var(--theme-highlight) !important;
+}
+
+.system-layout .recharts-tooltip-wrapper > div {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+.theme-toggle {
+    background-color: var(--theme-surface-muted);
+    border-color: var(--theme-border);
+    color: var(--theme-text-primary);
+}
+
+.theme-toggle:hover {
+    background-color: var(--theme-overlay);
+    color: var(--theme-highlight);
+}
+
+.system-layout .bg-brand.text-white,
+.system-layout .bg-success.text-white,
+.system-layout .bg-danger.text-white {
+    color: var(--theme-on-highlight) !important;
+}

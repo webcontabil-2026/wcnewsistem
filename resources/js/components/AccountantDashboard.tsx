@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { User } from "../types";
 import { cn } from "../lib/utils";
+import ThemeToggle from "./ThemeToggle";
+import BrandLogo from "./BrandLogo";
 
 interface AccountantDashboardProps {
     user: User;
@@ -59,11 +61,9 @@ export default function AccountantDashboard({
     const [activeTab, setActiveTab] = useState("recebidos");
 
     return (
-        <div className="flex h-screen overflow-hidden text-slate-200">
+        <div className="system-layout flex h-screen overflow-hidden">
             <aside className="w-24 bg-white/5 backdrop-blur-2xl flex flex-col items-center py-10 gap-10 border-r border-white/10">
-                <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center text-white shadow-xl shadow-brand/40">
-                    <Inbox className="w-6 h-6" />
-                </div>
+                <BrandLogo size="accountant" className="shadow-xl shadow-brand/40" />
                 <div className="flex flex-col gap-6">
                     <SideNavItem active icon={<Users className="w-6 h-6" />} />
                     <SideNavItem icon={<FileCheck className="w-6 h-6" />} />
@@ -90,6 +90,7 @@ export default function AccountantDashboard({
                     </div>
 
                     <div className="flex items-center gap-6">
+                        <ThemeToggle />
                         <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-xl border border-white/5 backdrop-blur-md">
                             <Search className="w-4 h-4 text-white/20" />
                             <input

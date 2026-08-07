@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>@yield('title', config('app.name', 'WebContabil'))</title>
+        @include('partials.theme')
         @php
             $manifestPath = public_path('build/manifest.json');
         @endphp
@@ -25,17 +26,17 @@
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @endif
     </head>
-    <body class="min-h-screen">
+    <body class="theme-page min-h-screen">
         @php
             $currentPage = trim($__env->yieldContent('page')) ?: 'landing';
         @endphp
 
         @if (!in_array($currentPage, ['landing', 'login', 'register', 'dashboard']))
-            <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
+            <header class="theme-header border-b backdrop-blur-md sticky top-0 z-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between h-20 gap-4">
                     <div class="flex items-center gap-4">
-                        <div class="flex items-center justify-center w-20 h-20 rounded-xl brand-bg-square shadow-lg shadow-brand/40">
-                            <img src="/images/logo.svg" alt="WebContabil" class="header-logo" />
+                        <div class="flex items-center justify-center brand-bg-square shadow-lg shadow-brand/40">
+                            <span class="header-logo" role="img" aria-label="WebContabil"></span>
                         </div>
                         <span class="text-lg font-bold theme-text-high tracking-tight">WebContabil</span>
                     </div>
@@ -63,23 +64,22 @@
         @endif
 
         <script>
+            /* Mantém o botão do layout sincronizado com o tema global. */
             (function () {
-                try {
-                    const button = document.getElementById('theme-toggle');
-                    const stored = localStorage.getItem('wc-theme');
-                    const theme = stored === 'light' ? 'light' : 'dark';
-                    document.body.classList.toggle('theme-dark', theme === 'dark');
-                    if (button) {
-                        button.textContent = theme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
-                        button.addEventListener('click', () => {
-                            const isDark = document.body.classList.toggle('theme-dark');
-                            localStorage.setItem('wc-theme', isDark ? 'dark' : 'light');
-                            button.textContent = isDark ? 'Modo Claro' : 'Modo Escuro';
-                        });
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
+                const button = document.getElementById('theme-toggle');
+                if (!button) return;
+
+                const updateButton = function (theme) {
+                    button.textContent = theme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
+                };
+
+                const currentTheme = window.wcApplyTheme(document.documentElement.dataset.theme);
+                updateButton(currentTheme);
+
+                button.addEventListener('click', function () {
+                    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                    updateButton(window.wcApplyTheme(nextTheme));
+                });
             })();
         </script>
     </body>

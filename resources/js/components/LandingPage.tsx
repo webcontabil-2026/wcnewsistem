@@ -11,8 +11,8 @@ import {
     Zap,
     ArrowRight,
     UserCircle,
-    Calculator,
 } from "lucide-react";
+import BrandLogo from "./BrandLogo";
 
 interface LandingPageProps {
     onOpenAuth: (mode: "LOGIN" | "REGISTER") => void;
@@ -22,19 +22,21 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
     const [theme, setTheme] = useState<"light" | "dark">(() => {
         try {
             return (
-                (localStorage.getItem("wc-theme") as "light" | "dark") || "dark"
+                (localStorage.getItem("wc-theme") as "light" | "dark") || "light"
             );
         } catch {
-            return "dark";
+            return "light";
         }
     });
 
     useEffect(() => {
         try {
-            document.body.classList.toggle("theme-dark", theme === "dark");
-            localStorage.setItem("wc-theme", theme);
+            const applyTheme = (window as typeof window & {
+                wcApplyTheme?: (selectedTheme: "light" | "dark") => string;
+            }).wcApplyTheme;
+            applyTheme?.(theme);
         } catch (e) {
-            // ignore
+            // O tema claro permanece como alternativa segura se o armazenamento falhar.
         }
     }, [theme]);
 
@@ -42,15 +44,15 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
         setTheme((t) => (t === "dark" ? "light" : "dark"));
 
     return (
-        <div className="flex flex-col min-h-screen text-slate-200">
-            <header className="border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex flex-col min-h-screen theme-text-high">
+            <header className="theme-header border-b backdrop-blur-md sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-20 h-20 rounded-xl brand-bg-square shadow-lg shadow-brand/40">
-                            <img
-                                src="/images/logo.svg"
-                                alt="WebContabil"
+                        <div className="flex items-center justify-center brand-bg-square shadow-lg shadow-brand/40">
+                            <span
                                 className="header-logo"
+                                role="img"
+                                aria-label="WebContabil"
                             />
                         </div>
                         <span className="text-xl font-bold theme-text-high tracking-tight">
@@ -97,7 +99,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             </button>
                             <button
                                 onClick={() => onOpenAuth("REGISTER")}
-                                className="bg-white/10 border border-white/20 text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all shadow-xl shadow-black/20"
+                                className="theme-highlight border theme-border px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-xl shadow-black/20"
                             >
                                 Criar Conta
                             </button>
@@ -114,12 +116,12 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                         >
-                            <h1 className="text-6xl md:text-8xl font-extrabold text-white leading-[1] tracking-tighter">
+                            <h1 className="text-6xl md:text-8xl font-extrabold theme-text-high leading-[1] tracking-tighter">
                                 A ponte{" "}
                                 <span className="text-brand">inteligente</span>{" "}
                                 para sua contabilidade.
                             </h1>
-                            <p className="mt-8 text-xl text-white/40 max-w-2xl mx-auto leading-relaxed font-medium">
+                            <p className="mt-8 text-xl theme-text-low max-w-2xl mx-auto leading-relaxed font-medium">
                                 Sincronização perfeita entre contador e cliente.
                                 Dados salvos em nuvem, organizados e sempre
                                 acessíveis.
@@ -132,7 +134,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                                     Começar Agora
                                     <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                                 </button>
-                                <button className="bg-white/5 border border-white/10 backdrop-blur-lg text-white px-10 py-5 rounded-2xl text-lg font-bold hover:bg-white/10 transition-colors">
+                                <button className="theme-surface theme-text-high theme-border border backdrop-blur-lg px-10 py-5 rounded-2xl text-lg font-bold transition-colors">
                                     Ver Demonstração
                                 </button>
                             </div>
@@ -163,10 +165,10 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                 </section>
             </main>
 
-            <footer className="border-t border-white/5 py-16 px-4">
+            <footer className="border-t theme-border py-16 px-4">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
                     <div className="flex items-center gap-2">
-                        <Calculator className="w-6 h-6 text-brand" />
+                        <BrandLogo size="footer" />
                         <span className="text-xl font-bold theme-text-high">
                             WebContabil
                         </span>
@@ -205,14 +207,14 @@ function FeatureCard({
     description: string;
 }) {
     return (
-        <div className="p-10 bg-white/5 backdrop-blur-xl rounded-[32px] border border-white/10 hover:border-brand/30 transition-all group hover:-translate-y-2">
+        <div className="p-10 theme-surface backdrop-blur-xl rounded-[32px] border theme-border hover:border-brand/30 transition-all group hover:-translate-y-2">
             <div className="p-4 bg-brand/10 w-fit rounded-2xl mb-6 group-hover:bg-brand group-hover:text-white transition-colors">
                 {icon}
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">
+            <h3 className="text-2xl font-bold theme-text-high mb-4 tracking-tight">
                 {title}
             </h3>
-            <p className="text-white/40 leading-relaxed font-medium">
+            <p className="theme-text-low leading-relaxed font-medium">
                 {description}
             </p>
         </div>

@@ -78,4 +78,4 @@
             </a>
         </section>
     </main>
-@endsect
+@endsection
