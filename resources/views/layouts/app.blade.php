@@ -32,7 +32,7 @@
         @endphp
 
         @if (!in_array($currentPage, ['landing', 'login', 'register', 'dashboard']))
-            <header class="theme-header border-b backdrop-blur-md sticky top-0 z-10">
+            <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between h-20 gap-4">
                     <div class="flex items-center gap-4">
                         <div class="flex items-center justify-center brand-bg-square shadow-lg shadow-brand/40">
@@ -49,7 +49,7 @@
                     </nav>
                     <div class="flex items-center gap-4">
                         <a href="/" class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-brand text-white hover:bg-brand-light transition text-sm font-semibold">← Voltar ao Início</a>
-                        <button id="theme-toggle" class="px-3 py-2 rounded-md border border-white/20 text-sm font-medium theme-text-high hover:bg-white/10 transition">
+                        <button id="theme-toggle" class="px-3 py-2 rounded-md border text-sm font-medium theme-text-high hover:opacity-70 transition">
                             Alternar Tema
                         </button>
                     </div>
