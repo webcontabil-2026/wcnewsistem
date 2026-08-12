@@ -5,6 +5,17 @@
 :root {
     color-scheme: light;
 
+    /*
+     * Medidas estruturais compartilhadas por todas as telas.
+     * Os limites impedem que o conteúdo fique largo demais em monitores grandes,
+     * enquanto os valores fluidos preservam margens confortáveis em telas menores.
+     */
+    --layout-content-max: 72rem;
+    --layout-wide-max: 80rem;
+    --layout-gutter: clamp(1rem, 3vw, 2.5rem);
+    --layout-section-space: clamp(3rem, 7vw, 5rem);
+    --layout-block-gap: clamp(1.5rem, 3vw, 2.5rem);
+
     /* Escala azul da marca: do tom mais claro ao mais escuro. */
     --color-blue-50: rgb(239, 246, 255);
     --color-blue-100: rgb(219, 234, 254);
@@ -67,15 +78,102 @@ body {
     color: var(--theme-text-primary);
 }
 
-body {
-    transition: background-color 180ms ease, color 180ms ease;
+html {
+    overflow-x: hidden;
 }
 
-.theme-text-high { color: var(--theme-text-primary) !important; }
-.theme-text-low { color: var(--theme-text-secondary) !important; }
-.theme-text-muted { color: var(--theme-text-muted) !important; }
-.theme-link { color: var(--theme-highlight); }
-.theme-link:hover { color: var(--theme-highlight-hover); }
+body {
+    min-width: 20rem;
+    overflow-wrap: break-word;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease;
+}
+
+/* Centraliza o conteúdo e aplica a mesma margem lateral em todo o projeto. */
+.layout-container,
+.layout-container-wide {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--layout-gutter);
+}
+
+.layout-container {
+    max-width: calc(
+        var(--layout-content-max) + var(--layout-gutter) + var(--layout-gutter)
+    );
+}
+
+.layout-container-wide {
+    max-width: calc(
+        var(--layout-wide-max) + var(--layout-gutter) + var(--layout-gutter)
+    );
+}
+
+/* Padroniza a distância vertical das áreas principais sem usar valores rígidos. */
+.layout-section {
+    padding-block: var(--layout-section-space);
+}
+
+.layout-grid {
+    display: grid;
+    gap: var(--layout-block-gap);
+}
+
+/* Evita que textos, formulários e gráficos forcem os blocos além do contêiner. */
+.layout-grid > *,
+.system-layout main,
+.system-layout section,
+.system-layout article {
+    min-width: 0;
+}
+
+img,
+svg,
+canvas,
+video {
+    max-width: 100%;
+}
+
+@media (max-width: 39.999rem) {
+    :root {
+        --layout-gutter: 1rem;
+        --layout-section-space: 3rem;
+    }
+
+    /* Em celulares, ações agrupadas ocupam a largura disponível sem transbordar. */
+    .layout-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .layout-actions > * {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+.theme-text-high {
+    color: var(--theme-text-primary) !important;
+}
+
+.theme-text-low {
+    color: var(--theme-text-secondary) !important;
+}
+
+.theme-text-muted {
+    color: var(--theme-text-muted) !important;
+}
+
+.theme-link {
+    color: var(--theme-highlight);
+}
+
+.theme-link:hover {
+    color: var(--theme-highlight-hover);
+}
 
 .theme-surface,
 .bg-card,
@@ -83,8 +181,13 @@ body {
     background-color: var(--theme-surface) !important;
 }
 
-.theme-surface-muted { background-color: var(--theme-surface-muted) !important; }
-.theme-border { border-color: var(--theme-border) !important; }
+.theme-surface-muted {
+    background-color: var(--theme-surface-muted) !important;
+}
+
+.theme-border {
+    border-color: var(--theme-border) !important;
+}
 
 .theme-header {
     background-color: var(--theme-header) !important;
