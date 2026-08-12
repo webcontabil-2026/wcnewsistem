@@ -44,7 +44,11 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
         <div className="flex flex-col min-h-screen theme-text-high">
             <header className="theme-header border-b backdrop-blur-md sticky top-0 z-10">
                 {/* Mantém o cabeçalho centralizado com margens responsivas. */}
-                <div className="layout-container-wide flex justify-between items-center min-h-20 py-2 gap-4">
+                {/* Permite que a marca e as ações se reorganizem em telas pequenas. */}
+                <div
+                    className="layout-container-wide flex flex-wrap
+               justify-between items-center min-h-20 py-3 gap-4"
+                >
                     <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center brand-bg-square shadow-lg shadow-brand/40">
                             <span
@@ -80,7 +84,11 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             Contato
                         </a>
                     </nav>
-                    <div className="flex items-center gap-4">
+                    {/* As ações ocupam uma nova linha quando não houver espaço suficiente. */}
+                    <div
+                        className="flex flex-wrap items-center justify-end
+               gap-2 sm:gap-4 max-sm:w-full"
+                    >
                         <button
                             onClick={toggleTheme}
                             aria-label="Alternar tema"
@@ -88,7 +96,10 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         >
                             {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
                         </button>
-                        <div className="flex items-center gap-6">
+                        <div
+                            className="flex flex-1 sm:flex-none
+               items-center justify-end gap-3 sm:gap-6"
+                        >
                             <button
                                 onClick={() => onOpenAuth("LOGIN")}
                                 className="text-xs font-bold uppercase tracking-widest theme-text-low hover:theme-text-high transition-colors"
@@ -97,7 +108,10 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             </button>
                             <button
                                 onClick={() => onOpenAuth("REGISTER")}
-                                className="theme-highlight border theme-border px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-xl shadow-black/20"
+                                className="theme-highlight border theme-border
+           px-4 sm:px-6 py-2.5 rounded-full text-xs
+           font-bold uppercase tracking-widest transition-all
+           shadow-xl shadow-black/20 whitespace-nowrap"
                             >
                                 Criar Conta
                             </button>
@@ -115,12 +129,20 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                         >
-                            <h1 className="text-6xl md:text-8xl font-extrabold theme-text-high leading-[1] tracking-tighter">
+                            {/* O título cresce gradualmente sem ultrapassar telas pequenas. */}
+                            <h1
+                                className="text-4xl sm:text-6xl md:text-8xl
+               font-extrabold theme-text-high
+               leading-[1.05] tracking-tighter"
+                            >
                                 A ponte{" "}
                                 <span className="text-brand">inteligente</span>{" "}
                                 para sua contabilidade.
                             </h1>
-                            <p className="mt-8 text-xl theme-text-low max-w-2xl mx-auto leading-relaxed font-medium">
+                            <p
+                                className="mt-8 text-base sm:text-xl theme-text-low
+               max-w-2xl mx-auto leading-relaxed font-medium"
+                            >
                                 Sincronização perfeita entre contador e cliente.
                                 Dados salvos em nuvem, organizados e sempre
                                 acessíveis.
@@ -128,12 +150,22 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                             <div className="mt-12 flex flex-col sm:flex-row justify-center gap-6">
                                 <button
                                     onClick={() => onOpenAuth("REGISTER")}
-                                    className="bg-brand text-white px-10 py-5 rounded-2xl text-lg font-bold hover:bg-brand-light transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand/40 group scale-100 hover:scale-105 active:scale-95"
+                                    className="w-full sm:w-auto bg-brand text-white
+           px-7 sm:px-10 py-4 sm:py-5 rounded-2xl
+           text-base sm:text-lg font-bold hover:bg-brand-light
+           transition-all flex items-center justify-center gap-3
+           shadow-2xl shadow-brand/40 group scale-100
+           hover:scale-105 active:scale-95"
                                 >
                                     Começar Agora
                                     <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                                 </button>
-                                <button className="theme-surface theme-text-high theme-border border backdrop-blur-lg px-10 py-5 rounded-2xl text-lg font-bold transition-colors">
+                                <button
+                                    className="w-full sm:w-auto theme-surface theme-text-high
+           theme-border border backdrop-blur-lg
+           px-7 sm:px-10 py-4 sm:py-5 rounded-2xl
+           text-base sm:text-lg font-bold transition-colors"
+                                >
                                     Ver Demonstração
                                 </button>
                             </div>
@@ -146,17 +178,17 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                     <div className="layout-container">
                         <div className="layout-grid grid-cols-1 md:grid-cols-3">
                             <FeatureCard
-                                icon={<Cloud className="w-8 h-8 text-brand" />}
+                                icon={<Cloud className="w-8 h-8" />}
                                 title="Sincronia Total"
                                 description="Seus documentos e informações salvos com segurança extrema e acessíveis de qualquer lugar."
                             />
                             <FeatureCard
-                                icon={<Shield className="w-8 h-8 text-brand" />}
+                                icon={<Shield className="w-8 h-8" />}
                                 title="Criptografia Real"
                                 description="Segurança de nível bancário para garantir que os dados sensíveis da sua empresa estejam protegidos."
                             />
                             <FeatureCard
-                                icon={<Zap className="w-8 h-8 text-brand" />}
+                                icon={<Zap className="w-8 h-8" />}
                                 title="Fluxo Hiper-Ágil"
                                 description="Simplificamos a comunicação. Envie e receba relatórios, notas e guias em segundos."
                             />
@@ -208,13 +240,34 @@ function FeatureCard({
     description: string;
 }) {
     return (
-        <div className="p-10 theme-surface backdrop-blur-xl rounded-[32px] border theme-border hover:border-brand/30 transition-all group hover:-translate-y-2">
-            <div className="p-4 bg-brand/10 w-fit rounded-2xl mb-6 group-hover:bg-brand group-hover:text-white transition-colors">
+        /*
+         * O card utiliza uma margem interna menor no celular e preserva
+         * o espaçamento amplo nas telas maiores.
+         */
+        <div
+            className="p-7 sm:p-10 theme-surface backdrop-blur-xl
+                       rounded-[32px] border theme-border
+                       hover:border-brand/30 transition-all
+                       group hover:-translate-y-2"
+        >
+            {/*
+             * O ícone herda a cor deste bloco para permanecer legível.
+             * No hover, o fundo fica azul e o símbolo muda para a cor de contraste.
+             */}
+            <div
+                className="p-4 w-fit rounded-2xl mb-6
+                           bg-brand/10 text-brand
+                           group-hover:bg-brand
+                           group-hover:text-[var(--theme-on-highlight)]
+                           transition-colors duration-200"
+            >
                 {icon}
             </div>
+
             <h3 className="text-2xl font-bold theme-text-high mb-4 tracking-tight">
                 {title}
             </h3>
+
             <p className="theme-text-low leading-relaxed font-medium">
                 {description}
             </p>
