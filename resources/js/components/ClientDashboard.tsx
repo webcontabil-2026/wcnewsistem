@@ -30,6 +30,10 @@ import {
     TrendingUp,
     Clock,
     CheckCircle2,
+    PanelLeftClose,
+    PanelLeftOpen,
+    Menu,
+    X,
 } from "lucide-react";
 import { User, ReportData, Task } from "../types";
 import { cn } from "../lib/utils";
@@ -84,62 +88,289 @@ export default function ClientDashboard({
 }: ClientDashboardProps) {
     const [activeTab, setActiveTab] = useState("inicio");
 
+    /*
+     * Controla a largura do menu lateral.
+     * Quando verdadeiro, apenas os ícones das funcionalidades permanecem visíveis.
+     */
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    /*
+     * Controla a abertura do menu em celulares e tablets.
+     * Em telas grandes, o menu lateral permanente continua sendo utilizado.
+     */
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     return (
         <div className="system-layout flex h-screen overflow-hidden">
-            <aside className="w-72 bg-white/5 backdrop-blur-2xl border-r border-white/10 flex flex-col hidden lg:flex">
-                <div className="p-8 flex items-center gap-3">
-                    <BrandLogo size="client" className="shadow-lg shadow-brand/40" />
-                    <span className="font-bold text-xl tracking-tighter text-white">
-                        WebContabil
-                    </span>
+            <aside
+                className={cn(
+                    /*
+                     * O menu altera somente a própria largura.
+                     * O conteúdo principal utiliza flex-grow e ocupa automaticamente
+                     * todo o espaço liberado quando o menu é recolhido.
+                     */
+                    "hidden lg:flex shrink-0 flex-col bg-white/5 backdrop-blur-2xl",
+                    "border-r border-white/10 transition-[width] duration-300",
+                    isSidebarCollapsed ? "w-24" : "w-72",
+                )}
+            >
+                <div
+                    className={cn(
+                        "min-h-24 px-5 flex items-center border-b border-white/5",
+                        isSidebarCollapsed
+                            ? "justify-center"
+                            : "justify-between gap-3",
+                    )}
+                >
+                    <div
+                        className={cn(
+                            "flex items-center min-w-0",
+                            isSidebarCollapsed ? "justify-center" : "gap-3",
+                        )}
+                    >
+                        <BrandLogo
+                            size="client"
+                            className="shadow-lg shadow-brand/40"
+                        />
+
+                        {!isSidebarCollapsed && (
+                            <span
+                                className="font-bold text-xl tracking-tighter
+                               text-white whitespace-nowrap"
+                            >
+                                WebContabil
+                            </span>
+                        )}
+                    </div>
+
+                    {!isSidebarCollapsed && (
+                        <button
+                            type="button"
+                            onClick={() => setIsSidebarCollapsed(true)}
+                            className="w-10 h-10 shrink-0 rounded-xl
+                           flex items-center justify-center
+                           text-white/40 hover:text-brand
+                           hover:bg-white/5 transition-colors"
+                            aria-label="Recolher menu lateral"
+                            title="Recolher menu"
+                        >
+                            <PanelLeftClose className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
 
-                <nav className="flex-grow px-6 space-y-2 py-6">
+                {isSidebarCollapsed && (
+                    <button
+                        type="button"
+                        onClick={() => setIsSidebarCollapsed(false)}
+                        className="mx-auto mt-4 w-11 h-11 rounded-xl
+                       flex items-center justify-center
+                       text-white/40 hover:text-brand
+                       hover:bg-white/5 transition-colors"
+                        aria-label="Expandir menu lateral"
+                        title="Expandir menu"
+                    >
+                        <PanelLeftOpen className="w-5 h-5" />
+                    </button>
+                )}
+
+                <nav
+                    className={cn(
+                        "flex-grow space-y-2 py-6",
+                        isSidebarCollapsed ? "px-3" : "px-6",
+                    )}
+                >
                     <SidebarItem
                         active={activeTab === "inicio"}
                         onClick={() => setActiveTab("inicio")}
                         icon={<LayoutDashboard className="w-5 h-5" />}
                         label="Dashboard"
+                        collapsed={isSidebarCollapsed}
                     />
                     <SidebarItem
                         active={activeTab === "servicos"}
                         onClick={() => setActiveTab("servicos")}
                         icon={<FileText className="w-5 h-5" />}
                         label="Planos & Serviços"
+                        collapsed={isSidebarCollapsed}
                     />
                     <SidebarItem
                         active={activeTab === "agenda"}
                         onClick={() => setActiveTab("agenda")}
                         icon={<Calendar className="w-5 h-5" />}
                         label="Agenda Fiscal"
+                        collapsed={isSidebarCollapsed}
                     />
                     <SidebarItem
                         active={activeTab === "gestao"}
                         onClick={() => setActiveTab("gestao")}
                         icon={<CheckCircle2 className="w-5 h-5" />}
                         label="Gestão de Tarefas"
+                        collapsed={isSidebarCollapsed}
                     />
                 </nav>
 
-                <div className="p-6 border-t border-white/5 space-y-2">
+                {/*
+                 * Reduz o espaçamento da área inferior quando o menu
+                 * estiver exibindo somente os ícones.
+                 */}
+                <div
+                    className={cn(
+                        "border-t border-white/5 space-y-2",
+                        isSidebarCollapsed ? "p-3" : "p-6",
+                    )}
+                >
                     <SidebarItem
                         active={false}
                         onClick={() => {}}
                         icon={<Settings className="w-6 h-6" />}
                         label="Configurações"
+                        collapsed={isSidebarCollapsed}
                     />
                     <SidebarItem
                         active={false}
                         onClick={onLogout}
                         icon={<LogOut className="w-6 h-6" />}
                         label="Encerrar Sessão"
+                        collapsed={isSidebarCollapsed}
                     />
                 </div>
             </aside>
 
+            {/*
+             * Menu móvel do painel do cliente.
+             * O fundo escurecido fecha o menu quando o usuário toca fora do painel.
+             */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        aria-label="Fechar menu lateral"
+                    />
+
+                    <aside
+                        className="relative z-10 w-[min(20rem,88vw)] h-full
+                       flex flex-col bg-slate-900
+                       border-r border-white/10 shadow-2xl"
+                        aria-label="Menu do painel do cliente"
+                    >
+                        <div
+                            className="min-h-24 px-5 flex items-center
+                           justify-between gap-3
+                           border-b border-white/10"
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <BrandLogo
+                                    size="client"
+                                    className="shadow-lg shadow-brand/40"
+                                />
+
+                                <span
+                                    className="font-bold text-xl tracking-tighter
+                                   text-white whitespace-nowrap"
+                                >
+                                    WebContabil
+                                </span>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-11 h-11 shrink-0 rounded-xl
+                               flex items-center justify-center
+                               text-white/50 hover:text-brand
+                               hover:bg-white/5 transition-colors"
+                                aria-label="Fechar menu lateral"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <nav className="flex-grow overflow-y-auto px-5 py-6 space-y-2">
+                            <SidebarItem
+                                active={activeTab === "inicio"}
+                                onClick={() => {
+                                    setActiveTab("inicio");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<LayoutDashboard className="w-5 h-5" />}
+                                label="Dashboard"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "servicos"}
+                                onClick={() => {
+                                    setActiveTab("servicos");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<FileText className="w-5 h-5" />}
+                                label="Planos & Serviços"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "agenda"}
+                                onClick={() => {
+                                    setActiveTab("agenda");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<Calendar className="w-5 h-5" />}
+                                label="Agenda Fiscal"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "gestao"}
+                                onClick={() => {
+                                    setActiveTab("gestao");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<CheckCircle2 className="w-5 h-5" />}
+                                label="Gestão de Tarefas"
+                                collapsed={false}
+                            />
+                        </nav>
+
+                        <div className="p-5 border-t border-white/10 space-y-2">
+                            <SidebarItem
+                                active={false}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                icon={<Settings className="w-6 h-6" />}
+                                label="Configurações"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={false}
+                                onClick={onLogout}
+                                icon={<LogOut className="w-6 h-6" />}
+                                label="Encerrar Sessão"
+                                collapsed={false}
+                            />
+                        </div>
+                    </aside>
+                </div>
+            )}
+
             <main className="flex-grow flex flex-col overflow-y-auto">
-                <header className="h-20 bg-white/5 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-10 sticky top-0 z-10">
-                    <div className="flex items-center gap-4 bg-white/5 px-5 py-2.5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                {/*
+                 * O cabeçalho utiliza altura mínima e espaçamento fluido para manter
+                 * os elementos confortáveis em notebooks e monitores maiores.
+                 */}
+                <header
+                    className="min-h-24 bg-white/5 backdrop-blur-md
+               border-b border-white/10 flex flex-wrap
+               items-center justify-between gap-4
+               px-4 sm:px-6 xl:px-10 py-3
+               sticky top-0 z-10"
+                >
+                    <div
+                        className="flex items-center gap-4 bg-white/5
+               px-4 sm:px-5 py-3 rounded-2xl
+               border border-white/5 backdrop-blur-sm
+               w-full sm:w-auto sm:min-w-72"
+                    >
                         <Search className="w-4 h-4 text-white/20" />
                         <input
                             placeholder="Buscar notas, relatórios..."
@@ -147,8 +378,29 @@ export default function ClientDashboard({
                         />
                     </div>
 
-                    <div className="flex items-center gap-8">
+                    <div
+                        className="flex items-center justify-end
+               gap-3 sm:gap-5 xl:gap-8
+               w-full sm:w-auto"
+                    >
+                        {/*
+                         * Em celulares e tablets, abre a versão móvel do menu lateral.
+                         */}
+                        <button
+                            type="button"
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="lg:hidden w-11 h-11 shrink-0 rounded-xl
+               border border-white/10 bg-white/5
+               flex items-center justify-center
+               text-white hover:text-brand transition-colors"
+                            aria-label="Abrir menu lateral"
+                            title="Abrir menu"
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+
                         <ThemeToggle />
+
                         <button className="relative p-2 text-white/40 hover:text-brand transition-colors">
                             <Bell className="w-6 h-6" />
                             <span className="absolute top-2 right-2.5 w-2 h-2 bg-brand rounded-full border-2 border-slate-900 shadow-lg shadow-brand/20"></span>
@@ -169,8 +421,15 @@ export default function ClientDashboard({
                     </div>
                 </header>
 
-                <div className="p-10 space-y-10">
-                    <div className="flex justify-between items-end">
+                {/*
+                 * O conteúdo utiliza margens menores em telas estreitas e aumenta
+                 * gradualmente o espaçamento conforme a largura disponível.
+                 */}
+                <div className="p-4 sm:p-6 xl:p-10 space-y-8 xl:space-y-10">
+                    <div
+                        className="flex flex-col md:flex-row
+               md:justify-between md:items-end gap-6"
+                    >
                         <div>
                             <p className="text-brand font-bold text-xs uppercase tracking-[0.2em] mb-1">
                                 Visão Geral
@@ -182,7 +441,7 @@ export default function ClientDashboard({
                                 Estatísticas e fluxos de caixa em tempo real.
                             </p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <button className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">
                                 Exportar PDF
                             </button>
@@ -451,26 +710,44 @@ function SidebarItem({
     onClick,
     icon,
     label,
+    collapsed,
 }: {
     active: boolean;
     onClick: () => void;
     icon: ReactNode;
     label: string;
+    collapsed: boolean;
 }) {
     return (
         <button
+            type="button"
             onClick={onClick}
+            /*
+             * O título permite identificar a funcionalidade quando
+             * o menu está compacto e apresenta somente os ícones.
+             */
+            title={collapsed ? label : undefined}
+            aria-label={label}
             className={cn(
-                "flex items-center gap-3 p-4 rounded-3xl transition-all w-full text-left",
+                "flex items-center rounded-3xl transition-all w-full",
+                collapsed ? "justify-center p-2" : "gap-3 p-4 text-left",
                 active
                     ? "bg-brand text-white border border-brand/50 shadow-2xl shadow-brand/40"
                     : "text-white/40 hover:text-white hover:bg-white/5",
             )}
         >
-            <div className="w-10 h-10 rounded-3xl bg-white/5 flex items-center justify-center">
+            <div
+                className="w-10 h-10 shrink-0 rounded-3xl
+                           bg-white/5 flex items-center justify-center"
+            >
                 {icon}
             </div>
-            <span className="text-sm font-bold">{label}</span>
+
+            {!collapsed && (
+                <span className="text-sm font-bold whitespace-nowrap">
+                    {label}
+                </span>
+            )}
         </button>
     );
 }
