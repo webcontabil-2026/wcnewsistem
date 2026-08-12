@@ -29,7 +29,7 @@
                     Por isso, nossa missão é desmistificar a burocracia e entregar uma interface intuitiva que devolva o tempo precioso dos profissionais, permitindo que foquem no atendimento consultivo e no crescimento estratégico de seus clientes.
                 </p>
             </div>
-            <div class="bg-gray-100 dark:bg-zinc-800 rounded-2xl p-8 text-center flex flex-col justify-center h-64">
+            <div class="theme-surface-muted border theme-border rounded-2xl p-8 text-center flex flex-col justify-center min-h-64">
                 <span class="text-sm font-semibold text-brand tracking-wider uppercase mb-2">Tecnologia Humana</span>
                 <p class="text-xl italic theme-text-high">"Mais que automatizar processos, nosso objetivo é valorizar o tempo do contador."</p>
             </div>
@@ -78,4 +78,4 @@
             </a>
         </section>
     </main>
-@endsect
+@endsection
