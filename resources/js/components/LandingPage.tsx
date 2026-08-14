@@ -5,7 +5,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Cloud, Shield, Zap, ArrowRight, UserCircle } from "lucide-react";
+import { ArrowRight, Cloud, Shield, Zap } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 
 interface LandingPageProps {
@@ -13,6 +13,10 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onOpenAuth }: LandingPageProps) {
+    /*
+     * Recupera o tema salvo no navegador.
+     * Caso o armazenamento não esteja disponível, utiliza o tema claro.
+     */
     const [theme, setTheme] = useState<"light" | "dark">(() => {
         try {
             return (
@@ -24,6 +28,9 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
         }
     });
 
+    /*
+     * Mantém o tema global sincronizado quando o usuário alterna sua escolha.
+     */
     useEffect(() => {
         try {
             const applyTheme = (
@@ -31,87 +38,128 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                     wcApplyTheme?: (selectedTheme: "light" | "dark") => string;
                 }
             ).wcApplyTheme;
+
             applyTheme?.(theme);
-        } catch (e) {
-            // O tema claro permanece como alternativa segura se o armazenamento falhar.
+        } catch {
+            // O tema claro permanece como alternativa segura.
         }
     }, [theme]);
 
-    const toggleTheme = () =>
-        setTheme((t) => (t === "dark" ? "light" : "dark"));
+    /*
+     * Alterna entre os temas claro e escuro.
+     */
+    const toggleTheme = () => {
+        setTheme((currentTheme) =>
+            currentTheme === "dark" ? "light" : "dark",
+        );
+    };
 
     return (
-        <div className="flex flex-col min-h-screen theme-text-high">
-            <header className="theme-header border-b backdrop-blur-md sticky top-0 z-10">
-                {/* Mantém o cabeçalho centralizado com margens responsivas. */}
-                {/* Permite que a marca e as ações se reorganizem em telas pequenas. */}
+        <div className="flex min-h-screen flex-col theme-text-high">
+            <header className="theme-header sticky top-0 z-10 border-b backdrop-blur-md">
+                {/*
+                 * Mantém a marca, a navegação e as ações organizadas
+                 * dentro das margens responsivas do projeto.
+                 */}
                 <div
-                    className="layout-container-wide flex flex-wrap
-               justify-between items-center min-h-20 py-3 gap-4"
+                    className="layout-container-wide flex min-h-20 flex-wrap
+                               items-center justify-between gap-4 py-3"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center brand-bg-square shadow-lg shadow-brand/40">
+                        <div
+                            className="brand-bg-square flex items-center
+                                       justify-center shadow-lg shadow-brand/40"
+                        >
                             <span
                                 className="header-logo"
                                 role="img"
-                                aria-label="WebContabil"
+                                aria-label="Logotipo WebContabil"
                             />
                         </div>
-                        <span className="text-xl font-bold theme-text-high tracking-tight">
+
+                        <span className="text-xl font-bold tracking-tight theme-text-high">
                             WebContabil
                         </span>
                     </div>
-                    <nav className="hidden md:flex gap-10 text-xs font-bold uppercase tracking-widest theme-text-high">
-                        <a href="/sobre" className="theme-link hover:underline">
+
+                    <nav
+                        className="hidden items-center gap-8 text-xs font-bold
+                                   uppercase tracking-widest md:flex"
+                        aria-label="Navegação principal"
+                    >
+                        <a
+                            href="/sobre"
+                            className="wc-interactive wc-public-link"
+                        >
                             Sobre Nós
                         </a>
+
                         <a
                             href="/servicos"
-                            className="theme-link hover:underline"
+                            className="wc-interactive wc-public-link"
                         >
                             Serviços
                         </a>
+
                         <a
                             href="/planos"
-                            className="theme-link hover:underline"
+                            className="wc-interactive wc-public-link"
                         >
                             Planos
                         </a>
+
                         <a
                             href="/contato"
-                            className="theme-link hover:underline"
+                            className="wc-interactive wc-public-link"
                         >
                             Contato
                         </a>
                     </nav>
-                    {/* As ações ocupam uma nova linha quando não houver espaço suficiente. */}
+
+                    {/*
+                     * As ações podem ocupar uma nova linha quando não houver
+                     * espaço horizontal suficiente.
+                     */}
                     <div
-                        className="flex flex-wrap items-center justify-end
-               gap-2 sm:gap-4 max-sm:w-full"
+                        className="flex max-sm:w-full flex-wrap items-center
+                                   justify-end gap-2 sm:gap-4"
                     >
                         <button
+                            type="button"
                             onClick={toggleTheme}
-                            aria-label="Alternar tema"
-                            className="px-3 py-2 rounded-md border text-sm font-medium theme-text-high border-current"
+                            aria-label={
+                                theme === "dark"
+                                    ? "Ativar modo claro"
+                                    : "Ativar modo escuro"
+                            }
+                            className="wc-interactive wc-button-secondary
+                                       rounded-lg px-4 py-2.5 text-sm font-semibold"
                         >
                             {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
                         </button>
+
                         <div
-                            className="flex flex-1 sm:flex-none
-               items-center justify-end gap-3 sm:gap-6"
+                            className="flex flex-1 items-center justify-end
+                                       gap-3 sm:flex-none sm:gap-5"
                         >
                             <button
+                                type="button"
                                 onClick={() => onOpenAuth("LOGIN")}
-                                className="text-xs font-bold uppercase tracking-widest theme-text-low hover:theme-text-high transition-colors"
+                                className="wc-interactive wc-action-text
+                                           min-h-11 px-3 text-xs font-bold
+                                           uppercase tracking-widest"
                             >
                                 Entrar
                             </button>
+
                             <button
+                                type="button"
                                 onClick={() => onOpenAuth("REGISTER")}
-                                className="theme-highlight border theme-border
-           px-4 sm:px-6 py-2.5 rounded-full text-xs
-           font-bold uppercase tracking-widest transition-all
-           shadow-xl shadow-black/20 whitespace-nowrap"
+                                className="wc-interactive wc-button-primary
+                                           whitespace-nowrap rounded-full
+                                           px-4 py-2.5 text-xs font-bold
+                                           uppercase tracking-widest
+                                           sm:px-6"
                             >
                                 Criar Conta
                             </button>
@@ -121,50 +169,68 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
             </header>
 
             <main className="flex-grow">
-                {/* Utiliza o espaçamento e o contêiner responsivo global. */}
+                {/*
+                 * Apresenta a proposta principal dentro do contêiner
+                 * responsivo compartilhado pelo projeto.
+                 */}
                 <section className="layout-section relative">
-                    <div className="layout-container text-center space-y-10">
+                    <div className="layout-container space-y-10 text-center">
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            transition={{
+                                duration: 0.8,
+                                ease: "easeOut",
+                            }}
                         >
-                            {/* O título cresce gradualmente sem ultrapassar telas pequenas. */}
                             <h1
-                                className="text-4xl sm:text-6xl md:text-8xl
-               font-extrabold theme-text-high
-               leading-[1.05] tracking-tighter"
+                                className="text-4xl font-extrabold leading-[1.05]
+                                           tracking-tighter theme-text-high
+                                           sm:text-6xl md:text-8xl"
                             >
                                 A ponte{" "}
                                 <span className="text-brand">inteligente</span>{" "}
                                 para sua contabilidade.
                             </h1>
+
                             <p
-                                className="mt-8 text-base sm:text-xl theme-text-low
-               max-w-2xl mx-auto leading-relaxed font-medium"
+                                className="mx-auto mt-8 max-w-2xl text-base
+                                           font-medium leading-relaxed
+                                           theme-text-low sm:text-xl"
                             >
                                 Sincronização perfeita entre contador e cliente.
                                 Dados salvos em nuvem, organizados e sempre
                                 acessíveis.
                             </p>
-                            <div className="mt-12 flex flex-col sm:flex-row justify-center gap-6">
+
+                            <div
+                                className="mt-12 flex flex-col justify-center
+                                           gap-6 sm:flex-row"
+                            >
                                 <button
+                                    type="button"
                                     onClick={() => onOpenAuth("REGISTER")}
-                                    className="w-full sm:w-auto bg-brand text-white
-           px-7 sm:px-10 py-4 sm:py-5 rounded-2xl
-           text-base sm:text-lg font-bold hover:bg-brand-light
-           transition-all flex items-center justify-center gap-3
-           shadow-2xl shadow-brand/40 group scale-100
-           hover:scale-105 active:scale-95"
+                                    className="wc-interactive wc-button-primary
+                                               group flex w-full items-center
+                                               justify-center gap-3 rounded-2xl
+                                               px-7 py-4 text-base font-bold
+                                               sm:w-auto sm:px-10 sm:py-5
+                                               sm:text-lg"
                                 >
                                     Começar Agora
-                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                    <ArrowRight
+                                        className="h-6 w-6 transition-transform
+                                                   group-hover:translate-x-1"
+                                        aria-hidden="true"
+                                    />
                                 </button>
+
                                 <button
-                                    className="w-full sm:w-auto theme-surface theme-text-high
-           theme-border border backdrop-blur-lg
-           px-7 sm:px-10 py-4 sm:py-5 rounded-2xl
-           text-base sm:text-lg font-bold transition-colors"
+                                    type="button"
+                                    className="wc-interactive wc-button-secondary
+                                               w-full rounded-2xl px-7 py-4
+                                               text-base font-bold sm:w-auto
+                                               sm:px-10 sm:py-5 sm:text-lg"
                                 >
                                     Ver Demonstração
                                 </button>
@@ -173,22 +239,27 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                     </div>
                 </section>
 
-                {/* Organiza os blocos em uma coluna no celular e três no desktop. */}
+                {/*
+                 * Os cards são informativos neste momento.
+                 * Por isso, recebem animação visual sem cursor de botão.
+                 */}
                 <section className="layout-section relative">
                     <div className="layout-container">
                         <div className="layout-grid grid-cols-1 md:grid-cols-3">
                             <FeatureCard
-                                icon={<Cloud className="w-8 h-8" />}
+                                icon={<Cloud className="h-8 w-8" />}
                                 title="Sincronia Total"
                                 description="Seus documentos e informações salvos com segurança extrema e acessíveis de qualquer lugar."
                             />
+
                             <FeatureCard
-                                icon={<Shield className="w-8 h-8" />}
+                                icon={<Shield className="h-8 w-8" />}
                                 title="Criptografia Real"
                                 description="Segurança de nível bancário para garantir que os dados sensíveis da sua empresa estejam protegidos."
                             />
+
                             <FeatureCard
-                                icon={<Zap className="w-8 h-8" />}
+                                icon={<Zap className="h-8 w-8" />}
                                 title="Fluxo Hiper-Ágil"
                                 description="Simplificamos a comunicação. Envie e receba relatórios, notas e guias em segundos."
                             />
@@ -197,39 +268,57 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                 </section>
             </main>
 
-            <footer className="border-t theme-border py-16">
-                {/* Mantém os elementos do rodapé dentro das margens globais. */}
-                <div className="layout-container-wide flex flex-col md:flex-row justify-between items-center gap-10">
+            <footer className="border-t py-16 theme-border">
+                <div
+                    className="layout-container-wide flex flex-col items-center
+                               justify-between gap-10 md:flex-row"
+                >
                     <div className="flex items-center gap-2">
                         <BrandLogo size="footer" />
+
                         <span className="text-xl font-bold theme-text-high">
                             WebContabil
                         </span>
                     </div>
-                    <div className="text-xs font-bold uppercase tracking-widest theme-text-low">
+
+                    <p
+                        className="text-center text-xs font-bold uppercase
+                                   tracking-widest theme-text-low"
+                    >
                         © 2026 WebContabil Ecosystem. Todos os direitos
                         reservados.
-                    </div>
-                    <div className="flex gap-8">
+                    </p>
+
+                    <nav
+                        className="flex items-center gap-6"
+                        aria-label="Informações legais"
+                    >
                         <a
                             href="#"
-                            className="theme-text-low hover:theme-text-high transition-colors text-xs font-bold uppercase tracking-widest"
+                            className="wc-interactive wc-public-link text-xs
+                                       font-bold uppercase tracking-widest"
                         >
                             Privacidade
                         </a>
+
                         <a
                             href="#"
-                            className="theme-text-low hover:theme-text-high transition-colors text-xs font-bold uppercase tracking-widest"
+                            className="wc-interactive wc-public-link text-xs
+                                       font-bold uppercase tracking-widest"
                         >
                             Termos
                         </a>
-                    </div>
+                    </nav>
                 </div>
             </footer>
         </div>
     );
 }
 
+/*
+ * Representa um recurso informativo da tela de apresentação.
+ * O card não executa navegação enquanto não possuir um destino funcional.
+ */
 function FeatureCard({
     icon,
     title,
@@ -240,37 +329,25 @@ function FeatureCard({
     description: string;
 }) {
     return (
-        /*
-         * O card utiliza uma margem interna menor no celular e preserva
-         * o espaçamento amplo nas telas maiores.
-         */
-        <div
-            className="p-7 sm:p-10 theme-surface backdrop-blur-xl
-                       rounded-[32px] border theme-border
-                       hover:border-brand/30 transition-all
-                       group hover:-translate-y-2"
+        <article
+            className="wc-information-card rounded-[32px] border p-7
+                       backdrop-blur-xl theme-border theme-surface sm:p-10"
         >
-            {/*
-             * O ícone herda a cor deste bloco para permanecer legível.
-             * No hover, o fundo fica azul e o símbolo muda para a cor de contraste.
-             */}
             <div
-                className="p-4 w-fit rounded-2xl mb-6
-                           bg-brand/10 text-brand
-                           group-hover:bg-brand
-                           group-hover:text-[var(--theme-on-highlight)]
-                           transition-colors duration-200"
+                className="wc-information-card-icon mb-6 w-fit rounded-2xl
+                           bg-brand/10 p-4 text-brand"
+                aria-hidden="true"
             >
                 {icon}
             </div>
 
-            <h3 className="text-2xl font-bold theme-text-high mb-4 tracking-tight">
+            <h2 className="mb-4 text-2xl font-bold tracking-tight theme-text-high">
                 {title}
-            </h3>
+            </h2>
 
-            <p className="theme-text-low leading-relaxed font-medium">
+            <p className="font-medium leading-relaxed theme-text-low">
                 {description}
             </p>
-        </div>
+        </article>
     );
 }

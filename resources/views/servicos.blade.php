@@ -77,15 +77,20 @@
                     'Acompanhe a operação em painéis objetivos e identifique rapidamente o que precisa de atenção.',
                 ],
             ] as [$icon, $title, $description])
-                <article
-                    class="rounded-2xl border theme-border bg-card
-                           p-7 shadow-sm hover:-translate-y-1 transition"
-                >
+                {{--
+    O serviço é informativo nesta etapa.
+    Por isso, recebe destaque visual sem assumir aparência de botão.
+--}}
+<article
+    class="wc-information-card rounded-2xl border p-7
+           shadow-sm theme-border bg-card"
+>
                     <span
-                        class="w-12 h-12 grid place-items-center
-                               rounded-xl bg-brand/10 text-xl mb-5"
-                        aria-hidden="true"
-                    >
+    class="wc-information-card-icon mb-5 grid h-12 w-12
+           place-items-center rounded-xl bg-brand/10
+           text-xl text-brand"
+    aria-hidden="true"
+>
                         {{ $icon }}
                     </span>
 
@@ -120,14 +125,18 @@
                 </p>
             </div>
 
-            <a
-                href="/contato"
-                class="shrink-0 rounded-full bg-white text-brand
-                       font-bold px-7 py-3 text-center
-                       hover:bg-gray-100 transition"
-            >
-                Solicitar apresentação
-            </a>
+            {{--
+    Direciona o visitante ao contato com resposta visual para
+    mouse, teclado e toque.
+--}}
+<a
+    href="/contato"
+    class="wc-interactive wc-button-secondary inline-flex min-h-11
+           shrink-0 items-center justify-center rounded-full
+           px-7 py-3 text-center font-bold"
+>
+    Solicitar apresentação
+</a>
         </div>
     </section>
 </main>

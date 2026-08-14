@@ -61,101 +61,121 @@
             ];
         @endphp
 
-        @if (!in_array($currentPage, $reactPages))
-            <header
-                class="border-b border-white/10 bg-slate-900/80
-                       backdrop-blur-md sticky top-0 z-10"
+       @if (!in_array($currentPage, $reactPages))
+    {{--
+        Cabeçalho compartilhado pelas páginas públicas internas.
+        Os estados de página atual serão acrescentados no Passo 2.
+    --}}
+    <header
+        class="theme-header sticky top-0 z-10 border-b
+               backdrop-blur-md"
+    >
+        <div
+            class="layout-container-wide flex min-h-20 flex-wrap
+                   items-center justify-between gap-4 py-3"
+        >
+            {{--
+                A marca também funciona como um caminho acessível
+                para retornar à página inicial.
+            --}}
+            <a
+                href="/"
+                class="wc-interactive flex items-center gap-4 rounded-xl"
+                aria-label="Ir para a página inicial da WebContabil"
             >
                 <div
-                    class="layout-container-wide flex flex-wrap items-center
-                           justify-between min-h-20 py-2 gap-4"
+                    class="brand-bg-square flex items-center justify-center
+                           shadow-lg shadow-brand/40"
                 >
-                    <div class="flex items-center gap-4">
-                        <div
-                            class="flex items-center justify-center
-                                   brand-bg-square shadow-lg shadow-brand/40"
-                        >
-                            <span
-                                class="header-logo"
-                                role="img"
-                                aria-label="WebContabil"
-                            ></span>
-                        </div>
-
-                        <span
-                            class="text-lg font-bold theme-text-high
-                                   tracking-tight"
-                        >
-                            WebContabil
-                        </span>
-                    </div>
-
-                    <nav
-                        class="flex flex-wrap items-center gap-4 text-xs
-                               font-bold uppercase tracking-widest
-                               theme-text-high"
-                        aria-label="Navegação principal"
-                    >
-                        <a
-                            href="/"
-                            class="theme-link hover:underline"
-                        >
-                            Início
-                        </a>
-
-                        <a
-                            href="/sobre"
-                            class="theme-link hover:underline"
-                        >
-                            Sobre Nós
-                        </a>
-
-                        <a
-                            href="/servicos"
-                            class="theme-link hover:underline"
-                        >
-                            Serviços
-                        </a>
-
-                        <a
-                            href="/planos"
-                            class="theme-link hover:underline"
-                        >
-                            Planos
-                        </a>
-
-                        <a
-                            href="/contato"
-                            class="theme-link hover:underline"
-                        >
-                            Contato
-                        </a>
-                    </nav>
-
-                    <div class="layout-actions flex items-center gap-4">
-                        <a
-                            href="/"
-                            class="inline-flex items-center gap-2 rounded-full
-                                   px-4 py-2 bg-brand text-white
-                                   hover:bg-brand-light transition
-                                   text-sm font-semibold"
-                        >
-                            ← Voltar ao Início
-                        </a>
-
-                        <button
-                            id="theme-toggle"
-                            type="button"
-                            class="px-3 py-2 rounded-md border text-sm
-                                   font-medium theme-text-high
-                                   hover:opacity-70 transition"
-                        >
-                            Alternar Tema
-                        </button>
-                    </div>
+                    <span
+                        class="header-logo"
+                        role="img"
+                        aria-label="Logotipo WebContabil"
+                    ></span>
                 </div>
-            </header>
-        @endif
+
+                <span
+                    class="text-lg font-bold tracking-tight
+                           theme-text-high"
+                >
+                    WebContabil
+                </span>
+            </a>
+
+            {{--
+                Mantém a mesma resposta visual de mouse, teclado e toque
+                utilizada na tela inicial.
+            --}}
+            <nav
+                class="flex flex-wrap items-center justify-center gap-2
+                       text-xs font-bold uppercase tracking-widest
+                       sm:gap-4"
+                aria-label="Navegação principal"
+            >
+                <a
+                    href="/"
+                    class="wc-interactive wc-public-link"
+                >
+                    Início
+                </a>
+
+                <a
+                    href="/sobre"
+                    class="wc-interactive wc-public-link"
+                >
+                    Sobre Nós
+                </a>
+
+                <a
+                    href="/servicos"
+                    class="wc-interactive wc-public-link"
+                >
+                    Serviços
+                </a>
+
+                <a
+                    href="/planos"
+                    class="wc-interactive wc-public-link"
+                >
+                    Planos
+                </a>
+
+                <a
+                    href="/contato"
+                    class="wc-interactive wc-public-link"
+                >
+                    Contato
+                </a>
+            </nav>
+
+            {{--
+                As ações usam as classes globais para manter o mesmo
+                padrão visual da página inicial.
+            --}}
+            <div class="layout-actions flex items-center gap-3">
+                <a
+                    href="/"
+                    class="wc-interactive wc-button-primary inline-flex
+                           min-h-11 items-center justify-center gap-2
+                           rounded-full px-4 py-2 text-sm font-semibold"
+                >
+                    <span aria-hidden="true">←</span>
+                    Voltar ao Início
+                </a>
+
+                <button
+                    id="theme-toggle"
+                    type="button"
+                    class="wc-interactive wc-button-secondary min-h-11
+                           rounded-lg px-4 py-2 text-sm font-semibold"
+                    aria-label="Alternar entre os temas claro e escuro"
+                >
+                    Alternar Tema
+                </button>
+            </div>
+        </div>
+    </header>
+@endif
 
         @if (in_array($currentPage, $reactPages))
             <div

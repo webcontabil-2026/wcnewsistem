@@ -293,3 +293,581 @@ video {
 .system-layout .bg-danger.text-white {
     color: var(--theme-on-highlight) !important;
 }
+
+/*
+ * Padrão global de interação da interface pública.
+ * Estas classes fornecem respostas visuais consistentes para mouse,
+ * teclado e toque sem alterar a identidade visual de cada componente.
+ */
+.wc-interactive {
+    position: relative;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        opacity 180ms ease,
+        transform 180ms ease;
+}
+
+/*
+ * Exibe um contorno claro somente quando a navegação ocorre pelo teclado.
+ * O contorno fica afastado do elemento para não cobrir sua borda original.
+ */
+.wc-interactive:focus-visible {
+    outline: 3px solid var(--theme-highlight);
+    outline-offset: 3px;
+}
+
+/*
+ * Produz uma resposta discreta ao clique ou toque.
+ * A redução é pequena para não movimentar o restante da página.
+ */
+.wc-interactive:active:not(:disabled, [aria-disabled="true"]) {
+    transform: scale(0.97);
+}
+
+/*
+ * Impede que elementos desabilitados aparentem estar disponíveis.
+ */
+.wc-interactive:disabled,
+.wc-interactive[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/*
+ * Botão principal utilizado nas ações mais importantes da página.
+ */
+.wc-button-primary {
+    background-color: var(--theme-highlight);
+    border: 1px solid var(--theme-highlight);
+    color: var(--theme-on-highlight);
+    box-shadow: 0 14px 30px rgb(37 99 235 / 0.2);
+}
+
+.wc-button-primary:hover:not(:disabled, [aria-disabled="true"]) {
+    background-color: var(--theme-highlight-hover);
+    border-color: var(--theme-highlight-hover);
+    box-shadow: 0 18px 36px rgb(37 99 235 / 0.3);
+    transform: translateY(-2px);
+}
+
+/*
+ * Botão secundário usado em ações alternativas.
+ * Mantém contraste suficiente nos temas claro e escuro.
+ */
+.wc-button-secondary {
+    background-color: var(--theme-surface);
+    border: 1px solid var(--theme-border);
+    color: var(--theme-text-primary);
+    box-shadow: 0 8px 20px var(--theme-overlay);
+}
+
+.wc-button-secondary:hover:not(:disabled, [aria-disabled="true"]) {
+    background-color: var(--theme-surface-muted);
+    border-color: var(--theme-highlight);
+    color: var(--theme-highlight);
+    box-shadow: 0 14px 28px var(--theme-overlay);
+    transform: translateY(-2px);
+}
+
+/*
+ * Ação textual usada em links ou botões que não precisam de fundo.
+ */
+.wc-action-text {
+    color: var(--theme-text-secondary);
+    border-radius: 0.5rem;
+}
+
+.wc-action-text:hover:not(:disabled, [aria-disabled="true"]) {
+    color: var(--theme-highlight);
+    background-color: var(--theme-overlay);
+}
+
+/*
+ * Links públicos recebem uma linha animada sem depender de sublinhado nativo.
+ * O destaque da página atual será acrescentado no Passo 2.
+ */
+.wc-public-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    color: var(--theme-highlight);
+    text-decoration: none;
+}
+
+.wc-public-link::after {
+    content: "";
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.3rem;
+    left: 0.5rem;
+    height: 2px;
+    border-radius: 999px;
+    background-color: var(--theme-highlight);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 180ms ease;
+}
+
+.wc-public-link:hover {
+    color: var(--theme-highlight-hover);
+}
+
+.wc-public-link:hover::after,
+.wc-public-link:focus-visible::after {
+    transform: scaleX(1);
+}
+
+/*
+ * Card exclusivamente informativo.
+ * Sua animação reforça a separação visual, mas não usa cursor de botão.
+ */
+.wc-information-card {
+    cursor: default;
+    transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+}
+
+.wc-information-card:hover {
+    border-color: color-mix(
+        in srgb,
+        var(--theme-highlight) 45%,
+        var(--theme-border)
+    ) !important;
+    box-shadow: 0 18px 38px var(--theme-overlay);
+    transform: translateY(-6px);
+}
+
+/*
+ * Anima o ícone do card sem comprometer sua legibilidade.
+ */
+.wc-information-card-icon {
+    transition:
+        color 200ms ease,
+        background-color 200ms ease,
+        transform 200ms ease;
+}
+
+.wc-information-card:hover .wc-information-card-icon {
+    color: var(--theme-on-highlight);
+    background-color: var(--theme-highlight);
+    transform: scale(1.06);
+}
+
+/*
+ * Remove movimentos não essenciais quando essa preferência estiver
+ * configurada no sistema operacional do usuário.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .wc-interactive,
+    .wc-public-link::after,
+    .wc-information-card,
+    .wc-information-card-icon {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+
+    .wc-interactive:hover,
+    .wc-interactive:active,
+    .wc-information-card:hover,
+    .wc-information-card:hover .wc-information-card-icon {
+        transform: none !important;
+    }
+}
+/*
+ * Estrutura da seleção de serviços para Pessoa Física e Pessoa Jurídica.
+ * O grupo funciona visualmente como abas e preserva a navegação por teclado.
+ */
+.wc-plan-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 34rem);
+    margin-inline: auto;
+    padding: 0.35rem;
+    border: 1px solid var(--theme-border);
+    border-radius: 1rem;
+    background-color: var(--theme-surface);
+    box-shadow: 0 10px 24px var(--theme-overlay);
+}
+
+/*
+ * Cada opção possui área de toque confortável.
+ * A opção inativa permanece neutra para destacar somente a seleção atual.
+ */
+.wc-plan-tab {
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    color: var(--theme-text-secondary);
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.wc-plan-tab:hover {
+    color: var(--theme-highlight);
+    background-color: var(--theme-overlay);
+}
+
+/*
+ * Identifica de forma permanente qual categoria está selecionada.
+ */
+.wc-plan-tab[aria-selected="true"] {
+    color: var(--theme-on-highlight);
+    background-color: var(--theme-highlight);
+    border-color: var(--theme-highlight);
+    box-shadow: 0 8px 18px rgb(37 99 235 / 0.25);
+}
+
+.wc-plan-tab:focus-visible {
+    outline: 3px solid var(--theme-highlight);
+    outline-offset: 3px;
+}
+
+.wc-plan-tab:active {
+    transform: scale(0.98);
+}
+
+/*
+ * Os painéis são escondidos pelo atributo hidden.
+ * O painel selecionado recebe uma entrada discreta.
+ */
+.wc-plan-panel[hidden] {
+    display: none;
+}
+
+.wc-plan-panel:not([hidden]) {
+    animation: wc-plan-panel-entry 220ms ease-out;
+}
+
+@keyframes wc-plan-panel-entry {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/*
+ * Card de serviço comercial.
+ * Diferentemente dos cards apenas informativos, este contém ações reais.
+ */
+.wc-service-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    border: 1px solid var(--theme-border);
+    border-radius: 1.5rem;
+    background-color: var(--theme-surface);
+    box-shadow: 0 8px 22px var(--theme-overlay);
+    transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+}
+
+.wc-service-card:hover {
+    border-color: var(--theme-highlight);
+    box-shadow: 0 18px 38px var(--theme-overlay);
+    transform: translateY(-0.3rem);
+}
+
+/*
+ * Identifica os limites da oferta sem utilizar cores de alerta,
+ * pois o limite é uma informação comercial e não representa um erro.
+ */
+.wc-service-limit {
+    border: 1px solid var(--theme-border);
+    border-radius: 0.875rem;
+    padding: 0.875rem 1rem;
+    background-color: var(--theme-surface-muted);
+    color: var(--theme-text-secondary);
+}
+
+/*
+ * A área de detalhes utiliza o elemento nativo para manter
+ * acessibilidade e funcionamento mesmo sem JavaScript.
+ */
+.wc-service-details {
+    border-top: 1px solid var(--theme-border);
+}
+
+.wc-service-details summary {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--theme-highlight);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wc-service-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.wc-service-details summary::after {
+    content: "+";
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 180ms ease;
+}
+
+.wc-service-details[open] summary::after {
+    transform: rotate(45deg);
+}
+
+.wc-service-details summary:hover {
+    color: var(--theme-highlight-hover);
+}
+
+.wc-service-details summary:focus-visible {
+    outline: 3px solid var(--theme-highlight);
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+}
+
+/*
+ * Mantém os controles confortáveis em celulares muito estreitos.
+ */
+@media (max-width: 30rem) {
+    .wc-plan-selector {
+        grid-template-columns: 1fr;
+    }
+}
+
+/*
+ * Respeita usuários que optaram por reduzir movimentos no sistema.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .wc-plan-tab,
+    .wc-service-card,
+    .wc-service-details summary::after {
+        transition-duration: 1ms !important;
+    }
+
+    .wc-plan-panel:not([hidden]) {
+        animation: none !important;
+    }
+
+    .wc-plan-tab:active,
+    .wc-service-card:hover {
+        transform: none !important;
+    }
+}
+/*
+ * Campos compartilhados pelos formulários públicos.
+ * Mantêm o mesmo contraste e comportamento nos temas claro e escuro.
+ */
+.wc-form-field {
+    width: 100%;
+    min-height: 3rem;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    color: var(--theme-text-primary);
+    caret-color: var(--theme-highlight);
+    transition:
+        border-color 180ms ease,
+        background-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.wc-form-field:hover:not(:disabled) {
+    border-color: var(--theme-highlight);
+    background-color: var(--theme-overlay);
+}
+
+.wc-form-field:focus {
+    border-color: var(--theme-highlight);
+    outline: none;
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--theme-highlight) 25%, transparent);
+}
+
+.wc-form-field::placeholder {
+    color: var(--theme-text-muted);
+    opacity: 1;
+}
+
+.wc-form-field:disabled,
+.wc-form-field[readonly] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-color: var(--theme-surface-muted);
+}
+
+/*
+ * Destaca campos inválidos somente depois que o navegador
+ * identifica alguma interação ou tentativa de envio.
+ */
+.wc-form-field:user-invalid {
+    border-color: var(--theme-danger);
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--theme-danger) 20%, transparent);
+}
+
+/*
+ * Mensagens do formulário utilizam cores semânticas apenas
+ * para comunicar o resultado funcional da ação.
+ */
+.wc-form-feedback {
+    display: none;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.875rem;
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.wc-form-feedback[data-visible="true"] {
+    display: block;
+}
+
+.wc-form-feedback[data-status="success"] {
+    border-color: var(--theme-success);
+    color: var(--theme-success);
+    background-color: color-mix(in srgb, var(--theme-success) 10%, transparent);
+}
+
+.wc-form-feedback[data-status="error"] {
+    border-color: var(--theme-danger);
+    color: var(--theme-danger);
+    background-color: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+}
+
+/*
+ * Um seletor utiliza a seta nativa, mas mantém o padrão visual
+ * aplicado aos demais campos.
+ */
+select.wc-form-field {
+    cursor: pointer;
+}
+
+/*
+ * Evita movimentos desnecessários nos campos para usuários
+ * que escolheram reduzir animações.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .wc-form-field {
+        transition-duration: 1ms !important;
+    }
+}
+/*
+ * Seletor do perfil de atendimento no formulário de contato.
+ * Substitui o select nativo para manter a aparência consistente
+ * nos temas claro e escuro.
+ */
+.wc-profile-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.3rem;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.875rem;
+    background-color: var(--theme-surface-muted);
+}
+
+/*
+ * Cada perfil funciona como uma opção de seleção acessível.
+ */
+.wc-profile-option {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.65rem;
+    background-color: transparent;
+    color: var(--theme-text-secondary);
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.wc-profile-option:hover {
+    color: var(--theme-highlight);
+    background-color: var(--theme-overlay);
+}
+
+/*
+ * Mantém a opção escolhida destacada depois do clique.
+ */
+.wc-profile-option[aria-pressed="true"] {
+    color: var(--theme-on-highlight);
+    background-color: var(--theme-highlight);
+    border-color: var(--theme-highlight);
+    box-shadow: 0 6px 16px rgb(37 99 235 / 0.22);
+}
+
+.wc-profile-option:focus-visible {
+    outline: 3px solid var(--theme-highlight);
+    outline-offset: 2px;
+}
+
+.wc-profile-option:active {
+    transform: scale(0.98);
+}
+
+/*
+ * Agrupa o documento e sua orientação sem alterar o restante do formulário.
+ */
+.wc-document-field[hidden] {
+    display: none;
+}
+
+/*
+ * Em celulares muito estreitos, as opções são empilhadas para
+ * preservar uma área de toque confortável.
+ */
+@media (max-width: 25rem) {
+    .wc-profile-selector {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wc-profile-option {
+        transition-duration: 1ms !important;
+    }
+
+    .wc-profile-option:active {
+        transform: none !important;
+    }
+}

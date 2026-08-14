@@ -102,13 +102,13 @@
         --}}
         <div class="layout-grid grid-cols-1 md:grid-cols-3">
             <article
-                class="p-6 rounded-xl border theme-border
-                       bg-card shadow-sm"
+                class="wc-information-card rounded-xl border p-6
+       shadow-sm theme-border bg-card"
             >
                 <div
-                    class="w-12 h-12 rounded-lg bg-brand/10
-                           flex items-center justify-center
-                           text-brand mb-4 text-xl font-bold"
+                  class="wc-information-card-icon mb-4 flex h-12 w-12
+       items-center justify-center rounded-lg bg-brand/10
+       text-xl font-bold text-brand"
                     aria-hidden="true"
                 >
                     🛡️
@@ -126,13 +126,13 @@
             </article>
 
             <article
-                class="p-6 rounded-xl border theme-border
-                       bg-card shadow-sm"
+               class="wc-information-card rounded-xl border p-6
+       shadow-sm theme-border bg-card"
             >
                 <div
-                    class="w-12 h-12 rounded-lg bg-brand/10
-                           flex items-center justify-center
-                           text-brand mb-4 text-xl font-bold"
+                   class="wc-information-card-icon mb-4 flex h-12 w-12
+       items-center justify-center rounded-lg bg-brand/10
+       text-xl font-bold text-brand"
                     aria-hidden="true"
                 >
                     ⚡
@@ -150,13 +150,13 @@
             </article>
 
             <article
-                class="p-6 rounded-xl border theme-border
-                       bg-card shadow-sm"
+          class="wc-information-card rounded-xl border p-6
+       shadow-sm theme-border bg-card"
             >
                 <div
-                    class="w-12 h-12 rounded-lg bg-brand/10
-                           flex items-center justify-center
-                           text-brand mb-4 text-xl font-bold"
+                    class="wc-information-card-icon mb-4 flex h-12 w-12
+       items-center justify-center rounded-lg bg-brand/10
+       text-xl font-bold text-brand"
                     aria-hidden="true"
                 >
                     🔄
@@ -189,13 +189,18 @@
             diária e elevar o nível das suas entregas.
         </p>
 
-        <a
-            href="/register"
-            class="inline-block bg-white text-brand font-semibold
-                   px-6 py-3 rounded-lg hover:bg-gray-50 transition"
-        >
-            Começar Agora
-        </a>
+        {{--
+    A chamada final utiliza o padrão global de interação para oferecer
+    resposta visual consistente ao mouse, teclado e toque.
+--}}
+<a
+    href="/register"
+    class="wc-interactive wc-button-secondary inline-flex min-h-11
+           items-center justify-center rounded-lg px-6 py-3
+           font-semibold"
+>
+    Começar Agora
+</a>
     </section>
 </main>
 @endsection 
