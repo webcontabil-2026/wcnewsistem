@@ -363,7 +363,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         aria-label="Informações legais"
                     >
                         <a
-                            href="#"
+                            href="/politica-de-privacidade"
                             className="wc-interactive wc-public-link text-xs
                                        font-bold uppercase tracking-widest"
                         >

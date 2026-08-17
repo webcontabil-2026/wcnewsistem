@@ -93,6 +93,7 @@ body {
 /* Centraliza o conteúdo e aplica a mesma margem lateral em todo o projeto. */
 .layout-container,
 .layout-container-wide {
+    box-sizing: border-box;
     width: 100%;
     margin-inline: auto;
     padding-inline: var(--layout-gutter);
@@ -1096,4 +1097,29 @@ select.wc-form-field {
 
 .wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::after {
     transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/*
+ * Organiza os cartões da Política de Privacidade sem permitir
+ * que seu conteúdo ultrapasse a largura disponível no celular.
+ */
+.wc-privacy-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+.wc-privacy-grid > article {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/*
+ * Em telas maiores, distribui os cartões em duas colunas.
+ */
+@media (min-width: 48rem) {
+    .wc-privacy-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.5rem;
+    }
 }
