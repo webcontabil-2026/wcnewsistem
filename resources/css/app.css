@@ -58,7 +58,13 @@
     background-color: var(--theme-logo-tile);
     transition: background-color 180ms ease;
 }
-
+/*
+ * Mantém a logo do cabeçalho proporcional e responsiva.
+ * O limite máximo preserva o tamanho original em telas maiores.
+ */
+.brand-logo--header {
+    --brand-logo-size: clamp(52px, 5vw, 64px);
+}
 .brand-logo--footer { --brand-logo-size: 32px; }
 .brand-logo--client { --brand-logo-size: 40px; }
 .brand-logo--accountant { --brand-logo-size: 48px; }

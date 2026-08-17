@@ -1,4 +1,13 @@
-type BrandLogoSize = "footer" | "client" | "accountant" | "admin";
+/*
+ * Define os locais em que a logo pode ser utilizada.
+ * Cada opção possui seu próprio tamanho definido no CSS.
+ */
+type BrandLogoSize =
+    | "header"
+    | "footer"
+    | "client"
+    | "accountant"
+    | "admin";
 
 interface BrandLogoProps {
     size: BrandLogoSize;
