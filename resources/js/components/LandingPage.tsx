@@ -365,7 +365,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         </a>
 
                         <a
-                            href="#"
+                            href="/termos-de-uso"
                             className="wc-interactive wc-public-link text-xs
                                        font-bold uppercase tracking-widest"
                         >

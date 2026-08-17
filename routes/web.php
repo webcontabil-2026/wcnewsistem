@@ -8,6 +8,7 @@ Route::view('/servicos', 'servicos');
 Route::view('/planos', 'planos');
 Route::view('/contato', 'contato');
 Route::view('/politica-de-privacidade', 'privacidade');
+Route::view('/termos-de-uso', 'termos');
 Route::view('/login', 'login');
 Route::view('/register', 'register');
 Route::view('/dashboard', 'dashboard');

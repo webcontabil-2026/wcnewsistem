@@ -21,7 +21,7 @@
             ],
             'limit' => 'Até 2 fontes de renda, 2 contas bancárias e 1 bem declarado.',
             'audience' => 'Contribuintes que precisam entregar a declaração anual.',
-            'price' => 'A partir de R$ 89',
+            'price' => 'A partir de R$ 119,90',
         ],
         [
             'title' => 'Declaração Retificadora',
@@ -34,7 +34,7 @@
             ],
             'limit' => 'Uma declaração e até 3 correções cadastrais ou financeiras.',
             'audience' => 'Pessoas que identificaram erros após o envio.',
-            'price' => 'A partir de R$ 79',
+            'price' => 'A partir de R$ 99,90',
         ],
         [
             'title' => 'Regularização de CPF',
@@ -47,11 +47,11 @@
             ],
             'limit' => 'Um CPF e uma solicitação de regularização.',
             'audience' => 'Pessoas com CPF suspenso ou pendente de regularização.',
-            'price' => 'A partir de R$ 59',
+            'price' => 'Sob consulta',
         ],
         [
             'title' => 'Consulta de Malha Fiscal',
-            'description' => 'Análise de pendências em uma declaração retida para verificação.',
+            'description' => 'Análise de pendências em uma declaração retida para verificação e abertura de processos para resolução.',
             'included' => [
                 'Identificação das pendências',
                 'Conferência dos documentos',
@@ -60,7 +60,7 @@
             ],
             'limit' => 'Uma declaração e uma análise inicial.',
             'audience' => 'Contribuintes com declaração retida ou com pendências.',
-            'price' => 'A partir de R$ 99',
+            'price' => 'Sob consulta',
         ],
         [
             'title' => 'Carnê-Leão e DARF',
@@ -73,7 +73,7 @@
             ],
             'limit' => 'Uma competência mensal e até 20 lançamentos.',
             'audience' => 'Autônomos, profissionais liberais e pessoas com rendimentos mensais.',
-            'price' => 'A partir de R$ 69',
+            'price' => 'A partir de R$ 89,90',
         ],
         [
             'title' => 'Apuração de Ganho de Capital',
@@ -86,7 +86,7 @@
             ],
             'limit' => 'Um bem e uma operação de venda.',
             'audience' => 'Pessoas que venderam imóveis, veículos ou outros bens.',
-            'price' => 'A partir de R$ 119',
+            'price' => 'A partir de R$ 119,90',
         ],
     ];
 
