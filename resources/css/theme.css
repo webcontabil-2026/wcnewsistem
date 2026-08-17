@@ -871,3 +871,229 @@ select.wc-form-field {
         transform: none !important;
     }
 }
+/*
+ * Identifica de forma permanente a página atual no menu público.
+ * O fundo discreto e a linha inferior diferenciam o estado ativo
+ * do efeito temporário apresentado durante o hover.
+ */
+.wc-public-link[aria-current="page"] {
+    color: var(--theme-highlight);
+    background-color: var(--theme-overlay);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--theme-highlight) 25%, transparent);
+}
+
+/*
+ * Mantém a linha visível enquanto o usuário estiver na página,
+ * mesmo depois que o ponteiro sair do link.
+ */
+.wc-public-link[aria-current="page"]::after {
+    height: 3px;
+    background-color: var(--theme-highlight);
+    transform: scaleX(1);
+}
+
+/*
+ * O hover da página atual recebe um pequeno reforço visual,
+ * mas não modifica sua posição no cabeçalho.
+ */
+.wc-public-link[aria-current="page"]:hover {
+    color: var(--theme-highlight-hover);
+    background-color: color-mix(
+        in srgb,
+        var(--theme-highlight) 14%,
+        transparent
+    );
+}
+
+/*
+ * Padroniza a largura dos espaços da navegação pública.
+ * O espaçamento pertence ao menu e não depende do tamanho dos nomes.
+ */
+.wc-public-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.35rem, 1vw, 0.75rem);
+}
+
+/*
+ * Garante que todos os links ocupem uma área de interação semelhante,
+ * mesmo quando os textos possuem tamanhos diferentes.
+ */
+.wc-public-navigation .wc-public-link {
+    min-width: max-content;
+    padding-inline: clamp(0.65rem, 1.2vw, 1rem);
+    border-radius: 0.75rem;
+}
+
+/*
+ * No celular, a navegação será reorganizada posteriormente
+ * pelo menu responsivo sem perder o indicador da página atual.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .wc-public-link[aria-current="page"] {
+        transition-duration: 1ms !important;
+    }
+}
+/*
+ * Botão responsável por abrir e fechar a navegação pública em celulares.
+ * Ele permanece oculto quando há espaço para exibir o menu completo.
+ */
+.wc-public-menu-toggle {
+    display: none;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.75rem;
+    background-color: var(--theme-surface);
+    color: var(--theme-text-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.wc-public-menu-toggle:hover {
+    color: var(--theme-highlight);
+    border-color: var(--theme-highlight);
+    background-color: var(--theme-surface-muted);
+}
+
+.wc-public-menu-toggle:focus-visible {
+    outline: 3px solid var(--theme-highlight);
+    outline-offset: 3px;
+}
+
+.wc-public-menu-toggle:active {
+    transform: scale(0.96);
+}
+
+/*
+ * Em telas maiores, a navegação permanece integrada ao cabeçalho.
+ */
+.wc-public-menu {
+    display: flex;
+    align-items: center;
+}
+
+/*
+ * No celular, a navegação se transforma em um painel abaixo
+ * do cabeçalho e só aparece quando estiver aberta.
+ */
+@media (max-width: 47.999rem) {
+    .wc-public-menu-toggle {
+        display: inline-flex;
+    }
+
+    .wc-public-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: var(--layout-gutter);
+        left: var(--layout-gutter);
+        z-index: 30;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+        padding: 0.75rem;
+        border: 1px solid var(--theme-border);
+        border-radius: 1rem;
+        background-color: var(--theme-surface);
+        box-shadow: 0 20px 45px rgb(15 23 42 / 0.28);
+    }
+
+    /*
+     * O JavaScript altera este atributo quando o usuário
+     * solicita a abertura do menu.
+     */
+    .wc-public-menu[data-open="true"] {
+        display: flex;
+        animation: wc-public-menu-entry 180ms ease-out;
+    }
+
+    .wc-public-menu .wc-public-link {
+        width: 100%;
+        min-height: 3rem;
+        justify-content: flex-start;
+        padding-inline: 1rem;
+    }
+
+    .wc-public-menu .wc-public-link::after {
+        right: 1rem;
+        left: 1rem;
+    }
+}
+
+@keyframes wc-public-menu-entry {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wc-public-menu-toggle {
+        transition-duration: 1ms !important;
+    }
+
+    .wc-public-menu[data-open="true"] {
+        animation: none !important;
+    }
+
+    .wc-public-menu-toggle:active {
+        transform: none !important;
+    }
+}
+/*
+ * Centraliza precisamente o ícone do botão do menu.
+ */
+.wc-public-menu-toggle [data-public-menu-icon] {
+    display: grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    line-height: 1;
+}
+
+/*
+ * Substitui o caractere × por duas linhas perfeitamente centralizadas.
+ */
+.wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon] {
+    position: relative;
+    font-size: 0;
+    transform: none;
+}
+
+.wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::before,
+.wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.85rem;
+    height: 2px;
+    border-radius: 999px;
+    background-color: currentColor;
+    content: "";
+}
+
+.wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}

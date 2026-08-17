@@ -71,8 +71,8 @@
                backdrop-blur-md"
     >
         <div
-            class="layout-container-wide flex min-h-20 flex-wrap
-                   items-center justify-between gap-4 py-3"
+            class="layout-container-wide relative flex min-h-20
+       flex-wrap items-center justify-between gap-4 py-3"
         >
             {{--
                 A marca também funciona como um caminho acessível
@@ -102,50 +102,82 @@
                 </span>
             </a>
 
-            {{--
-                Mantém a mesma resposta visual de mouse, teclado e toque
-                utilizada na tela inicial.
-            --}}
-            <nav
-                class="flex flex-wrap items-center justify-center gap-2
-                       text-xs font-bold uppercase tracking-widest
-                       sm:gap-4"
-                aria-label="Navegação principal"
-            >
-                <a
-                    href="/"
-                    class="wc-interactive wc-public-link"
-                >
-                    Início
-                </a>
+            </a>
+
+{{--
+    Abre e fecha a navegação pública nas telas menores.
+--}}
+<button
+    id="public-menu-toggle"
+    type="button"
+    class="wc-public-menu-toggle"
+    aria-label="Abrir menu de navegação"
+    aria-expanded="false"
+    aria-controls="blade-public-menu"
+>
+    <span data-public-menu-icon aria-hidden="true">
+        ☰
+    </span>
+</button>
+
+{{--
+    Utiliza o menu responsivo e mantém o destaque
+    permanente da página visitada.
+--}}
+<nav
+    id="blade-public-menu"
+    class="wc-public-menu wc-public-navigation
+           text-xs font-bold uppercase tracking-widest"
+    aria-label="Navegação principal"
+    data-open="false"
+>
 
                 <a
-                    href="/sobre"
-                    class="wc-interactive wc-public-link"
-                >
-                    Sobre Nós
-                </a>
+    href="/"
+    class="wc-interactive wc-public-link"
+>
+    Início
+</a>
 
                 <a
-                    href="/servicos"
-                    class="wc-interactive wc-public-link"
-                >
-                    Serviços
-                </a>
+    href="/sobre"
+    class="wc-interactive wc-public-link"
+    @if ($currentPage === 'sobre')
+        aria-current="page"
+    @endif
+>
+    Sobre Nós
+</a>
 
                 <a
-                    href="/planos"
-                    class="wc-interactive wc-public-link"
-                >
-                    Planos
-                </a>
+    href="/servicos"
+    class="wc-interactive wc-public-link"
+    @if ($currentPage === 'servicos')
+        aria-current="page"
+    @endif
+>
+    Serviços
+</a>
 
                 <a
-                    href="/contato"
-                    class="wc-interactive wc-public-link"
-                >
-                    Contato
-                </a>
+    href="/planos"
+    class="wc-interactive wc-public-link"
+    @if ($currentPage === 'planos')
+        aria-current="page"
+    @endif
+>
+    Planos
+</a>
+
+               <a
+    href="/contato"
+    class="wc-interactive wc-public-link"
+    @if ($currentPage === 'contato')
+        aria-current="page"
+    @endif
+>
+    Contato
+</a>
             </nav>
 
             {{--
@@ -241,5 +273,100 @@
                 });
             })();
         </script>
+        <script>
+    /*
+     * Controla a navegação responsiva das páginas públicas Blade.
+     */
+    (function () {
+        const toggle = document.getElementById(
+            'public-menu-toggle'
+        );
+
+        const menu = document.getElementById(
+            'blade-public-menu'
+        );
+
+        const icon = toggle?.querySelector(
+            '[data-public-menu-icon]'
+        );
+
+        /*
+         * Encerra com segurança caso algum elemento não exista.
+         */
+        if (!toggle || !menu || !icon) {
+            return;
+        }
+
+        /*
+         * Atualiza o painel, o ícone e os atributos
+         * de acessibilidade do botão.
+         */
+        const setMenuState = function (isOpen) {
+            menu.dataset.open = isOpen ? 'true' : 'false';
+
+            toggle.setAttribute(
+                'aria-expanded',
+                isOpen ? 'true' : 'false'
+            );
+
+            toggle.setAttribute(
+                'aria-label',
+                isOpen
+                    ? 'Fechar menu de navegação'
+                    : 'Abrir menu de navegação'
+            );
+
+            icon.textContent = isOpen ? '×' : '☰';
+        };
+
+        /*
+         * Alterna o menu usando mouse, teclado ou toque.
+         */
+        toggle.addEventListener('click', function () {
+            setMenuState(menu.dataset.open !== 'true');
+        });
+
+        /*
+         * Fecha o menu depois da escolha de um link.
+         */
+        menu.addEventListener('click', function (event) {
+            if (event.target.closest('a')) {
+                setMenuState(false);
+            }
+        });
+
+        /*
+         * Fecha o menu com a tecla Esc.
+         */
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                setMenuState(false);
+                toggle.focus();
+            }
+        });
+
+        /*
+         * Fecha o menu quando o usuário clica fora dele.
+         */
+        document.addEventListener('click', function (event) {
+            if (
+                menu.dataset.open === 'true' &&
+                !menu.contains(event.target) &&
+                !toggle.contains(event.target)
+            ) {
+                setMenuState(false);
+            }
+        });
+
+        /*
+         * Remove o estado móvel ao retornar para o desktop.
+         */
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 768) {
+                setMenuState(false);
+            }
+        });
+    })();
+</script>
     </body>
 </html>

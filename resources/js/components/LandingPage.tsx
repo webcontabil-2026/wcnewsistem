@@ -29,6 +29,11 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
     });
 
     /*
+     * Controla a abertura do menu público em celulares.
+     */
+    const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
+
+    /*
      * Mantém o tema global sincronizado quando o usuário alterna sua escolha.
      */
     useEffect(() => {
@@ -44,6 +49,23 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
             // O tema claro permanece como alternativa segura.
         }
     }, [theme]);
+
+    /*
+     * Permite fechar o menu responsivo com a tecla Esc.
+     */
+    useEffect(() => {
+        const closeMenuWithEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsPublicMenuOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", closeMenuWithEscape);
+
+        return () => {
+            window.removeEventListener("keydown", closeMenuWithEscape);
+        };
+    }, []);
 
     /*
      * Alterna entre os temas claro e escuro.
@@ -62,13 +84,17 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                  * dentro das margens responsivas do projeto.
                  */}
                 <div
-                    className="layout-container-wide flex min-h-20 flex-wrap
-                               items-center justify-between gap-4 py-3"
+                    className="layout-container-wide relative flex min-h-20
+                   flex-wrap items-center justify-between gap-4 py-3"
                 >
-                    <div className="flex items-center gap-3">
+                    <a
+                        href="/"
+                        className="wc-interactive flex items-center gap-3 rounded-xl"
+                        aria-label="Ir para a página inicial da WebContabil"
+                    >
                         <div
                             className="brand-bg-square flex items-center
-                                       justify-center shadow-lg shadow-brand/40"
+                           justify-center shadow-lg shadow-brand/40"
                         >
                             <span
                                 className="header-logo"
@@ -80,13 +106,57 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         <span className="text-xl font-bold tracking-tight theme-text-high">
                             WebContabil
                         </span>
-                    </div>
+                    </a>
 
-                    <nav
-                        className="hidden items-center gap-8 text-xs font-bold
-                                   uppercase tracking-widest md:flex"
-                        aria-label="Navegação principal"
+                    {/*
+                     * Abre ou fecha a navegação em celulares.
+                     */}
+                    <button
+                        type="button"
+                        className="wc-public-menu-toggle"
+                        aria-label={
+                            isPublicMenuOpen
+                                ? "Fechar menu de navegação"
+                                : "Abrir menu de navegação"
+                        }
+                        aria-expanded={isPublicMenuOpen}
+                        aria-controls="landing-public-menu"
+                        onClick={() =>
+                            setIsPublicMenuOpen((currentState) => !currentState)
+                        }
                     >
+                        <span aria-hidden="true">
+                            {isPublicMenuOpen ? "×" : "☰"}
+                        </span>
+                    </button>
+
+                    {/*
+                     * A navegação utiliza o mesmo espaçamento e os mesmos
+                     * estados visuais das páginas internas.
+                     */}
+                    <nav
+                        id="landing-public-menu"
+                        className="wc-public-menu wc-public-navigation
+                       text-xs font-bold uppercase tracking-widest"
+                        aria-label="Navegação principal"
+                        data-open={isPublicMenuOpen ? "true" : "false"}
+                        onClick={(event) => {
+                            /*
+                             * Fecha o painel depois que um link é acionado.
+                             */
+                            if ((event.target as HTMLElement).closest("a")) {
+                                setIsPublicMenuOpen(false);
+                            }
+                        }}
+                    >
+                        <a
+                            href="/"
+                            className="wc-interactive wc-public-link"
+                            aria-current="page"
+                        >
+                            Início
+                        </a>
+
                         <a
                             href="/sobre"
                             className="wc-interactive wc-public-link"
@@ -117,12 +187,12 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                     </nav>
 
                     {/*
-                     * As ações podem ocupar uma nova linha quando não houver
-                     * espaço horizontal suficiente.
+                     * As ações podem ocupar uma segunda linha quando o espaço
+                     * disponível for reduzido.
                      */}
                     <div
                         className="flex max-sm:w-full flex-wrap items-center
-                                   justify-end gap-2 sm:gap-4"
+                       justify-end gap-2 sm:gap-4"
                     >
                         <button
                             type="button"
@@ -133,21 +203,21 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                                     : "Ativar modo escuro"
                             }
                             className="wc-interactive wc-button-secondary
-                                       rounded-lg px-4 py-2.5 text-sm font-semibold"
+                           rounded-lg px-4 py-2.5 text-sm font-semibold"
                         >
                             {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
                         </button>
 
                         <div
                             className="flex flex-1 items-center justify-end
-                                       gap-3 sm:flex-none sm:gap-5"
+                           gap-3 sm:flex-none sm:gap-5"
                         >
                             <button
                                 type="button"
                                 onClick={() => onOpenAuth("LOGIN")}
                                 className="wc-interactive wc-action-text
-                                           min-h-11 px-3 text-xs font-bold
-                                           uppercase tracking-widest"
+                               min-h-11 px-3 text-xs font-bold
+                               uppercase tracking-widest"
                             >
                                 Entrar
                             </button>
@@ -156,10 +226,9 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                                 type="button"
                                 onClick={() => onOpenAuth("REGISTER")}
                                 className="wc-interactive wc-button-primary
-                                           whitespace-nowrap rounded-full
-                                           px-4 py-2.5 text-xs font-bold
-                                           uppercase tracking-widest
-                                           sm:px-6"
+                               whitespace-nowrap rounded-full
+                               px-4 py-2.5 text-xs font-bold
+                               uppercase tracking-widest sm:px-6"
                             >
                                 Criar Conta
                             </button>
