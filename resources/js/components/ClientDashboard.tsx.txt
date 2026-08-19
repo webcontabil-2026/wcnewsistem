@@ -224,16 +224,16 @@ export default function ClientDashboard({
                         <PanelLeftOpen className="w-5 h-5" />
                     </button>
                 )}
-                <div className="relative flex-grow min-h-0">
-                    <nav
-                        ref={sidebarNavRef}
-                        onScroll={updateSidebarScroll}
-                        className={cn(
-                            "wc-sidebar-scroll h-full overflow-y-auto",
-                            "space-y-2 py-6",
-                            isSidebarCollapsed ? "px-3" : "px-6",
-                        )}
-                    >
+<div className="relative flex-grow min-h-0">
+    <
+        ref={sidebarNavRef}
+        onScroll={updateSidebarScroll}
+        className={cn(
+            "wc-sidebar-scroll h-full overflow-y-auto",
+            "space-y-2 py-6",
+            isSidebarCollapsed ? "px-3" : "px-6",
+        )}
+    >
                                     {/*
                      * Funções principais disponíveis para o cliente.
                      * O conteúdo de cada aba será implementado separadamente.
