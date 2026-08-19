@@ -1137,3 +1137,65 @@ select.wc-form-field {
     width: 0;
     height: 0;
 }
+/*
+ * Mantém o hover dos itens do menu visível no tema escuro.
+ */
+.wc-sidebar-item-default {
+    color: rgb(255 255 255 / 45%);
+}
+
+.wc-sidebar-item-default:hover,
+.wc-sidebar-item-default:focus-visible {
+    color: #ffffff;
+    background-color: rgb(255 255 255 / 8%);
+}
+
+/*
+ * Aplica o destaque vermelho à opção de sair do sistema.
+ */
+.wc-sidebar-item-danger {
+    color: rgb(255 255 255 / 45%);
+}
+
+.wc-sidebar-item-danger:hover,
+.wc-sidebar-item-danger:focus-visible {
+    color: #f87171;
+    background-color: rgb(239 68 68 / 14%);
+}
+
+.wc-sidebar-item-danger:hover .wc-sidebar-item-icon,
+.wc-sidebar-item-danger:focus-visible .wc-sidebar-item-icon {
+    color: #f87171;
+    background-color: rgb(239 68 68 / 18%);
+}
+
+/*
+ * Mantém os mesmos estados visíveis no tema claro.
+ */
+[data-theme="light"] .wc-sidebar-item-default {
+    color: #334155;
+}
+
+[data-theme="light"] .wc-sidebar-item-default:hover,
+[data-theme="light"] .wc-sidebar-item-default:focus-visible {
+    color: #0f172a;
+    background-color: rgb(15 23 42 / 9%);
+}
+
+[data-theme="light"] .wc-sidebar-item-danger {
+    color: #334155;
+}
+
+[data-theme="light"] .wc-sidebar-item-danger:hover,
+[data-theme="light"] .wc-sidebar-item-danger:focus-visible {
+    color: #b91c1c;
+    background-color: rgb(239 68 68 / 18%);
+}
+
+[data-theme="light"] .wc-sidebar-item-danger:hover .wc-sidebar-item-icon,
+[data-theme="light"]
+    .wc-sidebar-item-danger:focus-visible
+    .wc-sidebar-item-icon {
+    color: #b91c1c;
+    background-color: rgb(239 68 68 / 18%);
+}

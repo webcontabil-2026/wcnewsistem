@@ -296,9 +296,10 @@ export default function ClientDashboard({
                             <SidebarItem
                                 active={false}
                                 onClick={onLogout}
-                                icon={<LogOut className="w-6 h-6" />}
+                                icon={<LogOut className="w-5 h-5" />}
                                 label="Sair do sistema"
                                 collapsed={isSidebarCollapsed}
+                                danger
                             />
                         </div>
                     </nav>
@@ -453,6 +454,7 @@ export default function ClientDashboard({
                                 icon={<LogOut className="w-5 h-5" />}
                                 label="Encerrar Sessão"
                                 collapsed={false}
+                                danger
                             />
                         </div>
                     </aside>
@@ -817,12 +819,14 @@ function SidebarItem({
     icon,
     label,
     collapsed,
+    danger = false,
 }: {
     active: boolean;
     onClick: () => void;
     icon: ReactNode;
     label: string;
     collapsed: boolean;
+    danger?: boolean;
 }) {
     return (
         <button
@@ -835,16 +839,22 @@ function SidebarItem({
             title={collapsed ? label : undefined}
             aria-label={label}
             className={cn(
-                "flex items-center rounded-3xl transition-all w-full",
+                "group wc-sidebar-item flex items-center rounded-3xl transition-all w-full",
                 collapsed ? "justify-center p-2" : "gap-3 px-4 py-2 text-left",
                 active
                     ? "bg-brand text-white border border-brand/50 shadow-2xl shadow-brand/40"
-                    : "text-white/40 hover:text-white hover:bg-white/5",
+                    : danger
+                      ? "wc-sidebar-item-danger"
+                      : "wc-sidebar-item-default",
             )}
         >
             <div
-                className="w-10 h-10 shrink-0 rounded-3xl
-                           bg-white/5 flex items-center justify-center"
+                className="
+        wc-sidebar-item-icon
+        w-10 h-10 shrink-0 rounded-3xl
+        bg-white/5 flex items-center justify-center
+        transition-colors
+    "
             >
                 {icon}
             </div>
