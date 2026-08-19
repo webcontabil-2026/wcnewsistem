@@ -2,12 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import {
-    useEffect,
-    useRef,
-    useState,
-    ReactNode,
-} from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 import {
     BarChart,
     Bar,
@@ -23,7 +18,7 @@ import {
     LayoutDashboard,
     Users,
     FileText,
-        FolderOpen,
+    FolderOpen,
     MessageSquare,
     WalletCards,
     Calendar,
@@ -34,7 +29,7 @@ import {
     Search,
     Video,
     ChevronRight,
-        ChevronDown,
+    ChevronDown,
     ChevronUp,
     TrendingUp,
     Clock,
@@ -97,7 +92,7 @@ export default function ClientDashboard({
 }: ClientDashboardProps) {
     const [activeTab, setActiveTab] = useState("inicio");
 
-        /*
+    /*
      * Controla a rolagem das funções do menu lateral.
      * As setas aparecem somente quando existe conteúdo
      * escondido acima ou abaixo da área visível.
@@ -224,7 +219,7 @@ export default function ClientDashboard({
                         <PanelLeftOpen className="w-5 h-5" />
                     </button>
                 )}
-                <div className="relative flex-grow min-h-0">
+                <div className="relative flex-grow min-h-0 py-8">
                     <nav
                         ref={sidebarNavRef}
                         onScroll={updateSidebarScroll}
@@ -234,87 +229,85 @@ export default function ClientDashboard({
                             isSidebarCollapsed ? "px-3" : "px-6",
                         )}
                     >
-                                    {/*
-                     * Funções principais disponíveis para o cliente.
-                     * O conteúdo de cada aba será implementado separadamente.
-                     */}
-                    <SidebarItem
-                        active={activeTab === "inicio"}
-                        onClick={() => setActiveTab("inicio")}
-                        icon={<LayoutDashboard className="w-5 h-5" />}
-                        label="Início"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        {/*
+                         * Funções principais disponíveis para o cliente.
+                         * O conteúdo de cada aba será implementado separadamente.
+                         */}
+                        <SidebarItem
+                            active={activeTab === "inicio"}
+                            onClick={() => setActiveTab("inicio")}
+                            icon={<LayoutDashboard className="w-5 h-5" />}
+                            label="Início"
+                            collapsed={isSidebarCollapsed}
+                        />
 
-                    <SidebarItem
-                        active={activeTab === "servicos"}
-                        onClick={() => setActiveTab("servicos")}
-                        icon={<FileText className="w-5 h-5" />}
-                        label="Serviços"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        <SidebarItem
+                            active={activeTab === "servicos"}
+                            onClick={() => setActiveTab("servicos")}
+                            icon={<FileText className="w-5 h-5" />}
+                            label="Serviços"
+                            collapsed={isSidebarCollapsed}
+                        />
 
-                    <SidebarItem
-                        active={activeTab === "documentos"}
-                        onClick={() => setActiveTab("documentos")}
-                        icon={<FolderOpen className="w-5 h-5" />}
-                        label="Documentos"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        <SidebarItem
+                            active={activeTab === "documentos"}
+                            onClick={() => setActiveTab("documentos")}
+                            icon={<FolderOpen className="w-5 h-5" />}
+                            label="Documentos"
+                            collapsed={isSidebarCollapsed}
+                        />
 
-                    <SidebarItem
-                        active={activeTab === "conversas"}
-                        onClick={() => setActiveTab("conversas")}
-                        icon={<MessageSquare className="w-5 h-5" />}
-                        label="Conversas"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        <SidebarItem
+                            active={activeTab === "conversas"}
+                            onClick={() => setActiveTab("conversas")}
+                            icon={<MessageSquare className="w-5 h-5" />}
+                            label="Conversas"
+                            collapsed={isSidebarCollapsed}
+                        />
 
-                    <SidebarItem
-                        active={activeTab === "agenda"}
-                        onClick={() => setActiveTab("agenda")}
-                        icon={<Calendar className="w-5 h-5" />}
-                        label="Agenda Fiscal"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        <SidebarItem
+                            active={activeTab === "agenda"}
+                            onClick={() => setActiveTab("agenda")}
+                            icon={<Calendar className="w-5 h-5" />}
+                            label="Agenda Fiscal"
+                            collapsed={isSidebarCollapsed}
+                        />
 
-                                       <SidebarItem
-                        active={activeTab === "financeiro"}
-                        onClick={() => setActiveTab("financeiro")}
-                        icon={<WalletCards className="w-5 h-5" />}
-                        label="Financeiro"
-                        collapsed={isSidebarCollapsed}
-                    />
+                        <SidebarItem
+                            active={activeTab === "financeiro"}
+                            onClick={() => setActiveTab("financeiro")}
+                            icon={<WalletCards className="w-5 h-5" />}
+                            label="Financeiro"
+                            collapsed={isSidebarCollapsed}
+                        />
 
+                        {/*
+                         * Reduz o espaçamento da área inferior quando o menu
+                         * estiver exibindo somente os ícones.
+                         */}
+                        <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+                            <SidebarItem
+                                active={false}
+                                onClick={() => {}}
+                                icon={<Settings className="w-6 h-6" />}
+                                label="Configurações"
+                                collapsed={isSidebarCollapsed}
+                            />
+                            <SidebarItem
+                                active={false}
+                                onClick={onLogout}
+                                icon={<LogOut className="w-6 h-6" />}
+                                label="Sair do sistema"
+                                collapsed={isSidebarCollapsed}
+                            />
+                        </div>
+                    </nav>
 
-                {/*
-                 * Reduz o espaçamento da área inferior quando o menu
-                 * estiver exibindo somente os ícones.
-                 */}
-               <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-                    <SidebarItem
-                        active={false}
-                        onClick={() => {}}
-                        icon={<Settings className="w-6 h-6" />}
-                        label="Configurações"
-                        collapsed={isSidebarCollapsed}
-                    />
-                    <SidebarItem
-                        active={false}
-                        onClick={onLogout}
-                        icon={<LogOut className="w-6 h-6" />}
-                        label="Sair do sistema"
-                        collapsed={isSidebarCollapsed}
-                    />
-                             </div>
-
-            </nav>
-
-            {canScrollUp && (
+                    {canScrollUp && (
                         <button
                             type="button"
                             onClick={() => scrollSidebar("up")}
-                            className="absolute top-2 right-2 z-10
+                            className="absolute top-0 left-1/2 -translate-x-1/2 z-10
                                        w-8 h-8 rounded-full
                                        flex items-center justify-center
                                        bg-slate-950/40 backdrop-blur-md
@@ -332,7 +325,7 @@ export default function ClientDashboard({
                         <button
                             type="button"
                             onClick={() => scrollSidebar("down")}
-                            className="absolute bottom-2 right-2 z-10
+                            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10
                                        w-8 h-8 rounded-full
                                        flex items-center justify-center
                                        bg-slate-950/40 backdrop-blur-md
@@ -449,15 +442,15 @@ export default function ClientDashboard({
                             <SidebarItem
                                 active={false}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                             icon={<Settings className="w-5 h-5" />}
-label="Configurações e preferências"
+                                icon={<Settings className="w-5 h-5" />}
+                                label="Configurações e preferências"
                                 collapsed={false}
                             />
 
                             <SidebarItem
                                 active={false}
                                 onClick={onLogout}
-                               icon={<LogOut className="w-5 h-5" />}
+                                icon={<LogOut className="w-5 h-5" />}
                                 label="Encerrar Sessão"
                                 collapsed={false}
                             />
@@ -843,9 +836,7 @@ function SidebarItem({
             aria-label={label}
             className={cn(
                 "flex items-center rounded-3xl transition-all w-full",
-              collapsed
-    ? "justify-center p-2"
-    : "gap-3 px-4 py-2 text-left",
+                collapsed ? "justify-center p-2" : "gap-3 px-4 py-2 text-left",
                 active
                     ? "bg-brand text-white border border-brand/50 shadow-2xl shadow-brand/40"
                     : "text-white/40 hover:text-white hover:bg-white/5",
