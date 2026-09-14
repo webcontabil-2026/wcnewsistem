@@ -2926,26 +2926,32 @@ export default function ClientDashboard({
                             <div className="flex flex-col gap-3 sm:flex-row">
                                 <button
                                     type="button"
-                                    onClick={handleExportFinancialPdf}
+                                    onClick={() =>
+                                        void handleExportFinancialPdf()
+                                    }
                                     disabled={isExportingFinancialPdf}
                                     className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-white/10 disabled:cursor-wait disabled:opacity-60"
                                 >
                                     {isExportingFinancialPdf
-                                        ? "Gerando PDF..."
+                                        ? "Exportando..."
                                         : "Exportar PDF"}
                                 </button>
 
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        /*
+                                         * Abre a área financeira e apresenta o formulário
+                                         * responsável por salvar o lançamento no banco.
+                                         */
+                                        setActiveTab("financeiro");
                                         setFinancialEntryError("");
                                         setFinancialEntryMessage("");
-                                        setFinancialEntryAttachment(null);
                                         setIsFinancialEntryModalOpen(true);
                                     }}
-                                    className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-brand/40 transition-colors hover:bg-brand-light"
+                                    className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40"
                                 >
-                                    Novo lançamento
+                                    Novo Lançamento
                                 </button>
                             </div>
                         </div>
@@ -3863,37 +3869,75 @@ export default function ClientDashboard({
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <button className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">
-                                Exportar PDF
-                            </button>
-                            <button className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40">
-                                Novo Lançamento
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        void handleExportFinancialPdf()
+                                    }
+                                    disabled={isExportingFinancialPdf}
+                                    className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors disabled:cursor-wait disabled:opacity-60"
+                                >
+                                    {isExportingFinancialPdf
+                                        ? "Exportando..."
+                                        : "Exportar PDF"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        /*
+                                         * Direciona para o financeiro e abre
+                                         * o formulário de novo lançamento.
+                                         */
+                                        setActiveTab("financeiro");
+                                        setFinancialEntryError("");
+                                        setFinancialEntryMessage("");
+                                        setIsFinancialEntryModalOpen(true);
+                                    }}
+                                    className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40"
+                                >
+                                    Novo Lançamento
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    {/*
+                     * Exibe na tela inicial o mesmo resumo calculado
+                     * a partir dos lançamentos financeiros do usuário.
+                     */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <StatCard
-                            title="Fluxo de Caixa"
-                            value="R$ 12.450,00"
-                            trend="+12%"
+                            title="Receitas"
+                            value={formatCurrencyValue(
+                                financialSummary.revenue,
+                            )}
+                            trend="Entradas"
                             trendUp={true}
                         />
+
                         <StatCard
-                            title="Pendências"
-                            value="03"
-                            trend="Urgente"
+                            title="Despesas"
+                            value={formatCurrencyValue(
+                                financialSummary.expenses,
+                            )}
+                            trend="Saídas"
                             trendUp={false}
                         />
+
                         <StatCard
-                            title="Impostos"
-                            value="R$ 1.230,00"
-                            trend="Amanhã"
-                            trendUp={false}
+                            title="Saldo"
+                            value={formatCurrencyValue(financialBalance)}
+                            trend={
+                                financialBalance >= 0 ? "Positivo" : "Negativo"
+                            }
+                            trendUp={financialBalance >= 0}
                         />
+
                         <StatCard
-                            title="Economia"
-                            value="R$ 2.400,00"
-                            trend="Trimestre"
+                            title="Lançamentos"
+                            value={String(financialEntries.length)}
+                            trend="Total"
                             trendUp={true}
                         />
                     </div>
@@ -4108,7 +4152,8 @@ function StatCard({
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-black mb-4">
                 {title}
             </p>
-            <h2 className="text-3xl font-black text-white tracking-tight">
+            <h2 className="whitespace-nowrap text-xl 2xl:text-2xl font-black text-white tracking-tight tabular-nums">
+                {" "}
                 {value}
             </h2>
             <p
