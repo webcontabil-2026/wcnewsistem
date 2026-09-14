@@ -71,12 +71,15 @@
 .brand-logo--admin { --brand-logo-size: 40px; }
 
 .brand-logo__symbol {
-    width: calc(var(--brand-logo-size) * 1.84);
-    height: calc(var(--brand-logo-size) * 1.84);
+   /* Mantém o espaço da logo quadrado e proporcional ao arquivo SVG. */
+width: var(--brand-logo-size);
+height: var(--brand-logo-size);
     flex-shrink: 0;
     background-color: var(--theme-logo-mark);
-    mask: url("/images/logo.svg") center / contain no-repeat;
-    -webkit-mask: url("/images/logo.svg") center / contain no-repeat;
+    /* Exibe a logo centralizada e com uma pequena margem interna. */
+/* Usa a versão completa e transparente da logo. */
+mask: url("/images/logos/logosemfundoWC.png") center / contain no-repeat;
+-webkit-mask: url("/images/logos/logosemfundoWC.png") center / contain no-repeat;
 }
 
 /* Header responsive to theme */
