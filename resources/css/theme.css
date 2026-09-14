@@ -1199,3 +1199,14 @@ select.wc-form-field {
     color: #b91c1c;
     background-color: rgb(239 68 68 / 18%);
 }
+/*
+ * Mantém as cores semânticas do gráfico financeiro.
+ * Receita permanece verde e despesa permanece vermelha.
+ */
+.wc-financial-revenue-bar .recharts-rectangle {
+    fill: #10b981 !important;
+}
+
+.wc-financial-expense-bar .recharts-rectangle {
+    fill: #f43f5e !important;
+}

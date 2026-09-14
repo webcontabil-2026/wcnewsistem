@@ -17,6 +17,7 @@ import {
     Fingerprint,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ApiError, apiRequest } from "../lib/api";
 import { UserRole, User as UserType } from "../types";
 
 interface AuthModalProps {
@@ -34,6 +35,8 @@ export default function AuthModal({
 }: AuthModalProps) {
     const [mode, setMode] = useState<"LOGIN" | "REGISTER">(initialMode);
     const [role, setRole] = useState<AuthRole>("CLIENT");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [authError, setAuthError] = useState("");
     const [formData, setFormData] = useState({
         nome: "",
         razaoSocial: "",
@@ -45,26 +48,71 @@ export default function AuthModal({
         adminPass: "",
     });
 
-    const handleSubmit = (e: FormEvent) => {
+    /*
+     * Envia o cadastro ou login para o Laravel.
+     */
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        setAuthError("");
 
-        if (role === "ADMIN" && formData.adminPass !== "123") {
-            alert("Senha administrativa incorreta (Dica: 123)");
+        /*
+         * O acesso administrativo não utiliza mais uma senha exposta no React.
+         * Ele será conectado a uma conta protegida na próxima etapa.
+         */
+        if (role === "ADMIN") {
+            setAuthError(
+                "O acesso administrativo será configurado separadamente.",
+            );
             return;
         }
 
-        const mockUser: UserType = {
-            id: Math.random().toString(36).substr(2, 9),
-            name: formData.nome || "Usuário Teste",
-            email: formData.email,
-            role: role as UserRole,
-            razaoSocial: formData.razaoSocial,
-            cpf: formData.cpf,
-            cnpj: formData.cnpj,
-            crc: formData.crc,
-        };
+        setIsSubmitting(true);
 
-        onLogin(mockUser);
+        try {
+            const endpoint =
+                mode === "LOGIN" ? "/auth/login" : "/auth/register";
+
+            const requestBody =
+                mode === "LOGIN"
+                    ? {
+                          email: formData.email,
+                          password: formData.password,
+                      }
+                    : {
+                          name: formData.nome,
+                          email: formData.email,
+                          password: formData.password,
+                          role,
+                          razaoSocial: formData.razaoSocial || null,
+                          cpf: formData.cpf || null,
+                          cnpj: formData.cnpj || null,
+                          crc: formData.crc || null,
+                      };
+
+            const response = await apiRequest<{
+                message: string;
+                user: UserType;
+            }>(endpoint, {
+                method: "POST",
+                body: JSON.stringify(requestBody),
+            });
+
+            onLogin(response.user);
+        } catch (error) {
+            if (error instanceof ApiError) {
+                const firstValidationError = Object.values(
+                    error.errors,
+                ).flat()[0];
+
+                setAuthError(firstValidationError ?? error.message);
+            } else {
+                setAuthError(
+                    "Não foi possível conectar ao servidor. Tente novamente.",
+                );
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const inputClasses =
@@ -355,14 +403,24 @@ export default function AuthModal({
                                     </div>
                                 </div>
                             )}
-
+                            {authError && (
+                                <div
+                                    role="alert"
+                                    className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-medium text-red-400"
+                                >
+                                    {authError}
+                                </div>
+                            )}
                             <button
                                 type="submit"
-                                className="w-full bg-brand text-white py-4 rounded-2xl font-bold hover:bg-brand-light transition-all shadow-xl shadow-brand/40 active:scale-[0.98] mt-4"
+                                disabled={isSubmitting}
+                                className="mt-4 w-full rounded-2xl bg-brand py-4 font-bold text-white shadow-xl shadow-brand/40 transition-all hover:bg-brand-light active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                             >
-                                {mode === "LOGIN"
-                                    ? "Autenticar"
-                                    : "Cadastrar agora"}
+                                {isSubmitting
+                                    ? "Aguarde..."
+                                    : mode === "LOGIN"
+                                      ? "Autenticar"
+                                      : "Cadastrar agora"}
                             </button>
                         </form>
 

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\AuthController;
 Route::view('/', 'landing');
 Route::view('/sobre', 'sobre');
 Route::view('/servicos', 'servicos');
@@ -13,6 +13,22 @@ Route::view('/login', 'login');
 Route::view('/register', 'register');
 Route::view('/dashboard', 'dashboard');
 
-Route::get('/1', function () {
-    return view('tela1');
+/*
+ * Rotas públicas de cadastro e autenticação.
+ * O limitador reduz tentativas automatizadas de acesso.
+ */
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('throttle:10,1');
+
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:6,1');
+
+    /*
+     * Estas rotas exigem uma sessão autenticada.
+     */
+    Route::middleware('auth')->group(function () {
+        Route::get('/current', [AuthController::class, 'current']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
 });
