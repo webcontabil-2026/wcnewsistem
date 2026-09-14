@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\FinancialEntryController;
 Route::view('/', 'landing');
 Route::view('/sobre', 'sobre');
@@ -19,18 +19,18 @@ Route::view('/dashboard', 'dashboard');
  * O limitador reduz tentativas automatizadas de acesso.
  */
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register'])
+    Route::post('/register', [AutenticacaoController::class, 'register'])
         ->middleware('throttle:10,1');
 
-    Route::post('/login', [AuthController::class, 'login'])
+    Route::post('/login', [AutenticacaoController::class, 'login'])
         ->middleware('throttle:6,1');
 
     /*
      * Estas rotas exigem uma sessão autenticada.
      */
     Route::middleware('auth')->group(function () {
-        Route::get('/current', [AuthController::class, 'current']);
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/current', [AutenticacaoController::class, 'current']);
+        Route::post('/logout', [AutenticacaoController::class, 'logout']);
     });
 });
 /*

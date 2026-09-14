@@ -6,7 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -14,10 +14,8 @@ use Illuminate\Notifications\Notifiable;
     'name',
     'email',
     'password',
-    'razao_social',
-    'cpf',
-    'cnpj',
-    'crc',
+    'role',
+    'status',
 ])]
 #[Hidden([
     'password',
@@ -40,10 +38,26 @@ class User extends Authenticatable
     }
 
     /**
-     * Retorna os lançamentos financeiros pertencentes ao usuário.
+     * Retorna o cadastro de cliente relacionado ao usuário.
      */
-    public function financialEntries(): HasMany
+    public function cliente(): HasOne
     {
-        return $this->hasMany(FinancialEntry::class);
+        return $this->hasOne(
+            Cliente::class,
+            'user_id'
+        );
+    }
+
+    /**
+     * Retorna o cadastro de contador relacionado ao usuário.
+     *
+     * O model Contador será criado no próximo passo.
+     */
+    public function contador(): HasOne
+    {
+        return $this->hasOne(
+            Contador::class,
+            'user_id'
+        );
     }
 }
