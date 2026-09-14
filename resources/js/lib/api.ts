@@ -70,11 +70,27 @@ export async function apiRequest<T>(
         .catch(() => ({}))) as ApiErrorData;
 
     if (!response.ok) {
-        throw new ApiError(
-            responseData.message ?? "Não foi possível concluir a operação.",
-            response.status,
-            responseData.errors,
-        );
+        let errorMessage =
+            responseData.message ?? "Não foi possível concluir a operação.";
+
+        /*
+         * Traduz erros gerais enviados pelo Laravel.
+         */
+        if (response.status === 401) {
+            errorMessage =
+                "Sua sessão expirou. Entre novamente para continuar.";
+        }
+
+        if (response.status === 419) {
+            errorMessage =
+                "A página ficou aberta por muito tempo. Atualize e tente novamente.";
+        }
+
+        if (response.status >= 500) {
+            errorMessage = "O servidor encontrou um erro. Tente novamente.";
+        }
+
+        throw new ApiError(errorMessage, response.status, responseData.errors);
     }
 
     return responseData as T;

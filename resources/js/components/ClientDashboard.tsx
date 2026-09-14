@@ -51,10 +51,20 @@ import {
 } from "lucide-react";
 import { User, ReportData, Task } from "../types";
 import { cn } from "../lib/utils";
+import { ApiError, apiRequest } from "../lib/api";
 import ThemeToggle from "./ThemeToggle";
 import BrandLogo from "./BrandLogo";
 type FinancialEntryType = "receita" | "despesa" | "transferencia" | "ajuste";
 type FinancialChartPeriod = 1 | 7 | 15 | 30 | 90 | 180 | 365;
+/*
+ * Representa o comprovante que já foi armazenado pelo Laravel.
+ */
+interface FinancialAttachment {
+    name: string;
+    mimeType: string | null;
+    size: number | null;
+    url: string;
+}
 interface FinancialEntry {
     id: number;
     type: FinancialEntryType;
@@ -62,7 +72,7 @@ interface FinancialEntry {
     category: string;
     amount: number;
     date: string;
-    attachment?: File;
+    attachment: FinancialAttachment | null;
 }
 interface FinancialBarShapeProps {
     x?: number;
@@ -250,6 +260,13 @@ export default function ClientDashboard({
     const [financialEntryError, setFinancialEntryError] = useState("");
     const [financialEntryMessage, setFinancialEntryMessage] = useState("");
     /*
+     * Controla o carregamento e os erros dos dados financeiros.
+     */
+    const [isLoadingFinancialEntries, setIsLoadingFinancialEntries] =
+        useState(true);
+    const [isSavingFinancialEntry, setIsSavingFinancialEntry] = useState(false);
+    const [financialDataError, setFinancialDataError] = useState("");
+    /*
      * Controla o processo de geração do relatório financeiro.
      */
     const [isExportingFinancialPdf, setIsExportingFinancialPdf] =
@@ -380,7 +397,44 @@ export default function ClientDashboard({
             window.removeEventListener("resize", updateSidebarScroll);
         };
     }, []);
+    /*
+     * Carrega do banco os lançamentos pertencentes ao usuário atual.
+     */
+    useEffect(() => {
+        let isComponentMounted = true;
 
+        const loadFinancialEntries = async () => {
+            setFinancialDataError("");
+
+            try {
+                const response = await apiRequest<{
+                    entries: FinancialEntry[];
+                }>("/financial-entries");
+
+                if (isComponentMounted) {
+                    setFinancialEntries(response.entries);
+                }
+            } catch (error) {
+                if (isComponentMounted) {
+                    setFinancialDataError(
+                        error instanceof ApiError
+                            ? error.message
+                            : "Não foi possível carregar os lançamentos.",
+                    );
+                }
+            } finally {
+                if (isComponentMounted) {
+                    setIsLoadingFinancialEntries(false);
+                }
+            }
+        };
+
+        void loadFinancialEntries();
+
+        return () => {
+            isComponentMounted = false;
+        };
+    }, []);
     /*
      * Controla a largura do menu lateral.
      * Quando verdadeiro, apenas os ícones das funcionalidades permanecem visíveis.
@@ -395,10 +449,16 @@ export default function ClientDashboard({
      * Valida e registra temporariamente um lançamento financeiro.
      * TODO: enviar o lançamento ao servidor quando o banco estiver conectado.
      */
-    const handleFinancialEntrySubmit = (event: FormEvent<HTMLFormElement>) => {
+    /*
+     * Valida o formulário e salva o lançamento no Laravel.
+     */
+    const handleFinancialEntrySubmit = async (
+        event: FormEvent<HTMLFormElement>,
+    ) => {
         event.preventDefault();
 
         const amount = parseCurrencyInput(financialEntryForm.amount);
+
         if (
             !financialEntryForm.description.trim() ||
             !financialEntryForm.category.trim() ||
@@ -412,36 +472,71 @@ export default function ClientDashboard({
             return;
         }
 
-        const newEntry: FinancialEntry = {
-            id: Date.now(),
-            type: financialEntryForm.type,
-            description: financialEntryForm.description.trim(),
-            category: financialEntryForm.category.trim(),
-            amount,
-            date: financialEntryForm.date,
-            attachment: financialEntryAttachment ?? undefined,
-        };
-
-        setFinancialEntries((currentEntries) => [newEntry, ...currentEntries]);
-
-        setFinancialEntryForm({
-            type: "receita",
-            description: "",
-            category: "",
-            amount: "",
-            date: "",
-        });
-
         setFinancialEntryError("");
+        setFinancialDataError("");
+        setFinancialEntryMessage("");
+        setIsSavingFinancialEntry(true);
 
-        setFinancialEntryMessage(
-            financialEntryAttachment
-                ? `Lançamento adicionado com o anexo "${financialEntryAttachment.name}".`
-                : "Lançamento adicionado com sucesso.",
-        );
+        try {
+            /*
+             * FormData permite enviar os campos e o comprovante
+             * na mesma requisição.
+             */
+            const requestData = new FormData();
 
-        setFinancialEntryAttachment(null);
-        setIsFinancialEntryModalOpen(false);
+            requestData.append("type", financialEntryForm.type);
+            requestData.append(
+                "description",
+                financialEntryForm.description.trim(),
+            );
+            requestData.append("category", financialEntryForm.category.trim());
+            requestData.append("amount", amount.toFixed(2));
+            requestData.append("date", financialEntryForm.date);
+
+            if (financialEntryAttachment) {
+                requestData.append("attachment", financialEntryAttachment);
+            }
+
+            const response = await apiRequest<{
+                message: string;
+                entry: FinancialEntry;
+            }>("/financial-entries", {
+                method: "POST",
+                body: requestData,
+            });
+
+            /*
+             * O painel recebe o lançamento já salvo e identificado pelo banco.
+             */
+            setFinancialEntries((currentEntries) => [
+                response.entry,
+                ...currentEntries,
+            ]);
+
+            setFinancialEntryForm({
+                type: "receita",
+                description: "",
+                category: "",
+                amount: "",
+                date: "",
+            });
+
+            setFinancialEntryAttachment(null);
+            setFinancialEntryMessage(response.message);
+            setIsFinancialEntryModalOpen(false);
+        } catch (error) {
+            if (error instanceof ApiError) {
+                const firstValidationError = Object.values(
+                    error.errors,
+                ).flat()[0];
+
+                setFinancialEntryError(firstValidationError ?? error.message);
+            } else {
+                setFinancialEntryError("Não foi possível salvar o lançamento.");
+            }
+        } finally {
+            setIsSavingFinancialEntry(false);
+        }
     };
     /*
      * Calcula automaticamente o resumo com base nos lançamentos cadastrados.
@@ -611,21 +706,21 @@ export default function ClientDashboard({
     /*
      * Abre temporariamente o anexo selecionado em uma nova guia.
      */
-    const handleOpenFinancialAttachment = (attachment: File) => {
-        const attachmentUrl = URL.createObjectURL(attachment);
-
-        window.open(attachmentUrl, "_blank", "noopener,noreferrer");
-
-        window.setTimeout(() => {
-            URL.revokeObjectURL(attachmentUrl);
-        }, 60000);
+    /*
+     * Abre o comprovante protegido utilizando a rota do Laravel.
+     */
+    const handleOpenFinancialAttachment = (attachment: FinancialAttachment) => {
+        window.open(attachment.url, "_blank", "noopener,noreferrer");
     };
 
     /*
      * Exclui um lançamento após a confirmação do usuário.
      * TODO: realizar a exclusão também no servidor.
      */
-    const handleDeleteFinancialEntry = (entry: FinancialEntry) => {
+    /*
+     * Exclui o lançamento do banco e depois atualiza o painel.
+     */
+    const handleDeleteFinancialEntry = async (entry: FinancialEntry) => {
         const confirmed = window.confirm(
             `Deseja excluir o lançamento "${entry.description}"?`,
         );
@@ -634,13 +729,29 @@ export default function ClientDashboard({
             return;
         }
 
-        setFinancialEntries((currentEntries) =>
-            currentEntries.filter(
-                (currentEntry) => currentEntry.id !== entry.id,
-            ),
-        );
+        setFinancialDataError("");
 
-        setFinancialEntryMessage("Lançamento excluído com sucesso.");
+        try {
+            const response = await apiRequest<{
+                message: string;
+            }>(`/financial-entries/${entry.id}`, {
+                method: "DELETE",
+            });
+
+            setFinancialEntries((currentEntries) =>
+                currentEntries.filter(
+                    (currentEntry) => currentEntry.id !== entry.id,
+                ),
+            );
+
+            setFinancialEntryMessage(response.message);
+        } catch (error) {
+            setFinancialDataError(
+                error instanceof ApiError
+                    ? error.message
+                    : "Não foi possível excluir o lançamento.",
+            );
+        }
     };
     /*
      * Gera um relatório em PDF considerando o período selecionado no gráfico.
@@ -2847,6 +2958,23 @@ export default function ClientDashboard({
                                 {financialEntryMessage}
                             </div>
                         )}
+                        {financialDataError && (
+                            <div
+                                role="alert"
+                                className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-400"
+                            >
+                                {financialDataError}
+                            </div>
+                        )}
+
+                        {isLoadingFinancialEntries && (
+                            <div
+                                role="status"
+                                className="rounded-2xl border border-brand/20 bg-brand/10 p-4 text-sm font-medium text-brand-light"
+                            >
+                                Carregando lançamentos financeiros...
+                            </div>
+                        )}
                         {financialExportError && (
                             <div
                                 role="alert"
@@ -3697,9 +3825,14 @@ export default function ClientDashboard({
 
                                             <button
                                                 type="submit"
-                                                className="rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-light"
+                                                disabled={
+                                                    isSavingFinancialEntry
+                                                }
+                                                className="rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-light disabled:cursor-wait disabled:opacity-60"
                                             >
-                                                Salvar lançamento
+                                                {isSavingFinancialEntry
+                                                    ? "Salvando..."
+                                                    : "Salvar lançamento"}
                                             </button>
                                         </div>
                                     </form>
