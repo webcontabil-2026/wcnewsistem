@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,4 +77,14 @@ class LancamentoFinanceiro extends Model
             'empresa_id'
         );
     }
+    /**
+ * Retorna os documentos vinculados ao lançamento financeiro.
+ */
+public function documentos(): HasMany
+{
+    return $this->hasMany(
+        Documento::class,
+        'lancamento_financeiro_id'
+    );
+}
 }

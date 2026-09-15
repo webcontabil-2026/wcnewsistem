@@ -18,18 +18,19 @@ class Documento extends Model
     /**
      * Campos que podem ser preenchidos pela aplicação.
      */
-    protected $fillable = [
-        'cliente_id',
-        'empresa_id',
-        'enviado_por',
-        'enviado_para',
-        'nome_original',
-        'nome_arquivo',
-        'caminho',
-        'tipo_mime',
-        'tamanho',
-        'status',
-    ];
+ protected $fillable = [
+    'cliente_id',
+    'empresa_id',
+    'lancamento_financeiro_id',
+    'enviado_por',
+    'enviado_para',
+    'nome_original',
+    'nome_arquivo',
+    'caminho',
+    'tipo_mime',
+    'tamanho',
+    'status',
+];
 
     /**
      * Converte automaticamente os campos vindos do banco.
@@ -74,7 +75,7 @@ class Documento extends Model
         );
     }
 
-    /**
+     /**
      * Retorna o usuário destinatário do documento.
      */
     public function enviadoPara(): BelongsTo
@@ -82,6 +83,17 @@ class Documento extends Model
         return $this->belongsTo(
             User::class,
             'enviado_para'
+        );
+    }
+
+    /**
+     * Retorna o lançamento financeiro relacionado ao documento.
+     */
+    public function lancamentoFinanceiro(): BelongsTo
+    {
+        return $this->belongsTo(
+            LancamentoFinanceiro::class,
+            'lancamento_financeiro_id'
         );
     }
 }

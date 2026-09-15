@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AutenticacaoController;
-use App\Http\Controllers\FinancialEntryController;
+use App\Http\Controllers\LancamentoFinanceiroController;
+
 Route::view('/', 'landing');
 Route::view('/sobre', 'sobre');
 Route::view('/servicos', 'servicos');
@@ -19,43 +20,59 @@ Route::view('/dashboard', 'dashboard');
  * O limitador reduz tentativas automatizadas de acesso.
  */
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AutenticacaoController::class, 'register'])
-        ->middleware('throttle:10,1');
+    Route::post(
+        '/register',
+        [AutenticacaoController::class, 'register']
+    )->middleware('throttle:10,1');
 
-    Route::post('/login', [AutenticacaoController::class, 'login'])
-        ->middleware('throttle:6,1');
+    Route::post(
+        '/login',
+        [AutenticacaoController::class, 'login']
+    )->middleware('throttle:6,1');
 
     /*
      * Estas rotas exigem uma sessão autenticada.
      */
     Route::middleware('auth')->group(function () {
-        Route::get('/current', [AutenticacaoController::class, 'current']);
-        Route::post('/logout', [AutenticacaoController::class, 'logout']);
+        Route::get(
+            '/current',
+            [AutenticacaoController::class, 'current']
+        );
+
+        Route::post(
+            '/logout',
+            [AutenticacaoController::class, 'logout']
+        );
     });
 });
+
 /*
  * Rotas financeiras protegidas pela sessão do usuário.
  */
 Route::middleware('auth')
     ->prefix('financial-entries')
     ->group(function () {
+        /*
+         * Lista os lançamentos financeiros do cliente.
+         */
         Route::get(
             '/',
-            [FinancialEntryController::class, 'index']
+            [LancamentoFinanceiroController::class, 'index']
         );
 
+        /*
+         * Cria um novo lançamento financeiro.
+         */
         Route::post(
             '/',
-            [FinancialEntryController::class, 'store']
+            [LancamentoFinanceiroController::class, 'store']
         );
 
-        Route::get(
-            '/{financialEntry}/attachment',
-            [FinancialEntryController::class, 'downloadAttachment']
-        )->whereNumber('financialEntry');
-
+        /*
+         * Exclui um lançamento financeiro.
+         */
         Route::delete(
             '/{financialEntry}',
-            [FinancialEntryController::class, 'destroy']
+            [LancamentoFinanceiroController::class, 'destroy']
         )->whereNumber('financialEntry');
     });
