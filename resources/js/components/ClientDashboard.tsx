@@ -1228,6 +1228,10 @@ export default function ClientDashboard({
              */}
             {isMobileMenuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
+                    {/*
+                     * Fundo escurecido do menu móvel.
+                     * Ao tocar fora do painel, o menu é fechado.
+                     */}
                     <button
                         type="button"
                         className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
@@ -1236,15 +1240,25 @@ export default function ClientDashboard({
                     />
 
                     <aside
-                        className="relative z-10 w-[min(20rem,88vw)] h-full
-                       flex flex-col bg-slate-900
-                       border-r border-white/10 shadow-2xl"
+                        className="
+                relative z-10 h-full
+                w-[min(20rem,88vw)]
+                flex flex-col
+                border-r border-white/10
+                bg-slate-900
+                shadow-2xl
+            "
                         aria-label="Menu do painel do cliente"
                     >
+                        {/*
+                         * Cabeçalho do menu móvel.
+                         */}
                         <div
-                            className="min-h-24 px-5 flex items-center
-                           justify-between gap-3
-                           border-b border-white/10"
+                            className="
+                    min-h-24 px-5
+                    flex items-center justify-between gap-3
+                    border-b border-white/10
+                "
                         >
                             <div className="flex items-center gap-3 min-w-0">
                                 <BrandLogo
@@ -1252,10 +1266,7 @@ export default function ClientDashboard({
                                     className="shadow-lg shadow-brand/40"
                                 />
 
-                                <span
-                                    className="font-bold text-xl tracking-tighter
-                                   text-white whitespace-nowrap"
-                                >
+                                <span className="font-bold text-xl tracking-tighter text-white whitespace-nowrap">
                                     WebContabil
                                 </span>
                             </div>
@@ -1263,16 +1274,25 @@ export default function ClientDashboard({
                             <button
                                 type="button"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="w-11 h-11 shrink-0 rounded-xl
-                               flex items-center justify-center
-                               text-white/50 hover:text-brand
-                               hover:bg-white/5 transition-colors"
+                                className="
+                        w-11 h-11 shrink-0 rounded-xl
+                        flex items-center justify-center
+                        text-white/50
+                        transition-colors
+                        hover:bg-white/5 hover:text-brand
+                    "
                                 aria-label="Fechar menu lateral"
+                                title="Fechar menu"
                             >
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
+                        {/*
+                         * Navegação principal.
+                         * Mantém as mesmas opções disponíveis no menu desktop.
+                         * Após a escolha de uma função, o menu móvel é fechado.
+                         */}
                         <nav className="flex-grow overflow-y-auto px-5 py-6 space-y-2">
                             <SidebarItem
                                 active={activeTab === "inicio"}
@@ -1281,7 +1301,7 @@ export default function ClientDashboard({
                                     setIsMobileMenuOpen(false);
                                 }}
                                 icon={<LayoutDashboard className="w-5 h-5" />}
-                                label="Dashboard"
+                                label="Início"
                                 collapsed={false}
                             />
 
@@ -1292,7 +1312,29 @@ export default function ClientDashboard({
                                     setIsMobileMenuOpen(false);
                                 }}
                                 icon={<FileText className="w-5 h-5" />}
-                                label="Planos & Serviços"
+                                label="Serviços"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "documentos"}
+                                onClick={() => {
+                                    setActiveTab("documentos");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<FolderOpen className="w-5 h-5" />}
+                                label="Documentos"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "conversas"}
+                                onClick={() => {
+                                    setActiveTab("conversas");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                icon={<MessageSquare className="w-5 h-5" />}
+                                label="Conversas"
                                 collapsed={false}
                             />
 
@@ -1308,29 +1350,39 @@ export default function ClientDashboard({
                             />
 
                             <SidebarItem
-                                active={activeTab === "gestao"}
+                                active={activeTab === "financeiro"}
                                 onClick={() => {
-                                    setActiveTab("gestao");
+                                    setActiveTab("financeiro");
                                     setIsMobileMenuOpen(false);
                                 }}
-                                icon={<CheckCircle2 className="w-5 h-5" />}
-                                label="Gestão de Tarefas"
+                                icon={<WalletCards className="w-5 h-5" />}
+                                label="Financeiro"
                                 collapsed={false}
                             />
                         </nav>
 
+                        {/*
+                         * Opções de conta separadas das funções principais.
+                         */}
                         <div className="p-5 border-t border-white/10 space-y-2">
                             <SidebarItem
-                                active={false}
-                                onClick={() => setIsMobileMenuOpen(false)}
+                                active={activeTab === "configuracoes"}
+                                onClick={() => {
+                                    setActiveTab("configuracoes");
+                                    setSettingsSection("menu");
+                                    setIsMobileMenuOpen(false);
+                                }}
                                 icon={<Settings className="w-5 h-5" />}
-                                label="Configurações e preferências"
+                                label="Configurações"
                                 collapsed={false}
                             />
 
                             <SidebarItem
                                 active={false}
-                                onClick={onLogout}
+                                onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    onLogout();
+                                }}
                                 icon={<LogOut className="w-5 h-5" />}
                                 label="Encerrar Sessão"
                                 collapsed={false}
@@ -3197,7 +3249,10 @@ export default function ClientDashboard({
                                     <ResponsiveContainer
                                         width="100%"
                                         height="100%"
-                                        minWidth={0}
+                                        initialDimension={{
+                                            width: 1,
+                                            height: 320,
+                                        }}
                                     >
                                         <BarChart
                                             data={financialChartData}
@@ -3847,290 +3902,306 @@ export default function ClientDashboard({
                         )}
                     </section>
                 )}
-                <div
-                    className={cn(
-                        "p-4 sm:p-6 xl:p-10 space-y-8 xl:space-y-10",
-                        activeTab !== "inicio" && "hidden",
-                    )}
-                >
-                    <div
-                        className="flex flex-col md:flex-row
+                {activeTab === "inicio" && (
+                    <div className="p-4 sm:p-6 xl:p-10 space-y-8 xl:space-y-10">
+                        <div
+                            className="flex flex-col md:flex-row
                md:justify-between md:items-end gap-6"
-                    >
-                        <div>
-                            <p className="text-brand font-bold text-xs uppercase tracking-[0.2em] mb-1">
-                                Visão Geral
-                            </p>
-                            <h1 className="text-4xl font-extrabold text-white tracking-tighter">
-                                Olá, {user.name.split(" ")[0]}.
-                            </h1>
-                            <p className="text-white/40 font-medium mt-1">
-                                Estatísticas e fluxos de caixa em tempo real.
-                            </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        >
+                            <div>
+                                <p className="text-brand font-bold text-xs uppercase tracking-[0.2em] mb-1">
+                                    Visão Geral
+                                </p>
+                                <h1 className="text-4xl font-extrabold text-white tracking-tighter">
+                                    Olá, {user.name.split(" ")[0]}.
+                                </h1>
+                                <p className="text-white/40 font-medium mt-1">
+                                    Estatísticas e fluxos de caixa em tempo
+                                    real.
+                                </p>
+                            </div>
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        void handleExportFinancialPdf()
-                                    }
-                                    disabled={isExportingFinancialPdf}
-                                    className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors disabled:cursor-wait disabled:opacity-60"
-                                >
-                                    {isExportingFinancialPdf
-                                        ? "Exportando..."
-                                        : "Exportar PDF"}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        /*
-                                         * Direciona para o financeiro e abre
-                                         * o formulário de novo lançamento.
-                                         */
-                                        setActiveTab("financeiro");
-                                        setFinancialEntryError("");
-                                        setFinancialEntryMessage("");
-                                        setIsFinancialEntryModalOpen(true);
-                                    }}
-                                    className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40"
-                                >
-                                    Novo Lançamento
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {/*
-                     * Exibe na tela inicial o mesmo resumo calculado
-                     * a partir dos lançamentos financeiros do usuário.
-                     */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        <StatCard
-                            title="Receitas"
-                            value={formatCurrencyValue(
-                                financialSummary.revenue,
-                            )}
-                            trend="Entradas"
-                            trendUp={true}
-                        />
-
-                        <StatCard
-                            title="Despesas"
-                            value={formatCurrencyValue(
-                                financialSummary.expenses,
-                            )}
-                            trend="Saídas"
-                            trendUp={false}
-                        />
-
-                        <StatCard
-                            title="Saldo"
-                            value={formatCurrencyValue(financialBalance)}
-                            trend={
-                                financialBalance >= 0 ? "Positivo" : "Negativo"
-                            }
-                            trendUp={financialBalance >= 0}
-                        />
-
-                        <StatCard
-                            title="Lançamentos"
-                            value={String(financialEntries.length)}
-                            trend="Total"
-                            trendUp={true}
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 shadow-2xl">
-                            <div className="flex justify-between items-center mb-8">
-                                <div>
-                                    <h3 className="font-bold text-xl text-white tracking-tight">
-                                        Controle Mensal
-                                    </h3>
-                                    <p className="text-xs text-white/20 font-bold uppercase tracking-widest mt-1">
-                                        Faturamento vs Despesas
-                                    </p>
-                                </div>
-                                <TrendingUp className="w-6 h-6 text-brand" />
-                            </div>
-                            <div className="h-72">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={mockChartData}>
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            vertical={false}
-                                            stroke="rgba(255,255,255,0.05)"
-                                        />
-                                        <XAxis
-                                            dataKey="month"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{
-                                                fontSize: 10,
-                                                fill: "rgba(255,255,255,0.3)",
-                                                fontWeight: "bold",
-                                            }}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{
-                                                fontSize: 10,
-                                                fill: "rgba(255,255,255,0.3)",
-                                                fontWeight: "bold",
-                                            }}
-                                        />
-                                        <Tooltip
-                                            cursor={{
-                                                fill: "rgba(255,255,255,0.05)",
-                                            }}
-                                            contentStyle={{
-                                                backgroundColor: "#0f172a",
-                                                borderRadius: "16px",
-                                                border: "1px solid rgba(255,255,255,0.1)",
-                                                boxShadow:
-                                                    "0 25px 50px -12px rgb(0 0 0 / 0.5)",
-                                            }}
-                                        />
-                                        <Bar
-                                            dataKey="value"
-                                            fill="#0C447C"
-                                            radius={[6, 6, 0, 0]}
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 shadow-2xl">
-                            <div className="flex justify-between items-center mb-8">
-                                <div>
-                                    <h3 className="font-bold text-xl text-white tracking-tight">
-                                        Atividade
-                                    </h3>
-                                    <p className="text-xs text-white/20 font-bold uppercase tracking-widest mt-1">
-                                        Frequência Semanal
-                                    </p>
-                                </div>
-                                <Clock className="w-6 h-6 text-brand" />
-                            </div>
-                            <div className="h-72">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={mockWeeklyData}>
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            vertical={false}
-                                            stroke="rgba(255,255,255,0.05)"
-                                        />
-                                        <XAxis
-                                            dataKey="day"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{
-                                                fontSize: 10,
-                                                fill: "rgba(255,255,255,0.3)",
-                                                fontWeight: "bold",
-                                            }}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{
-                                                fontSize: 10,
-                                                fill: "rgba(255,255,255,0.3)",
-                                                fontWeight: "bold",
-                                            }}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: "#0f172a",
-                                                borderRadius: "16px",
-                                                border: "1px solid rgba(255,255,255,0.1)",
-                                            }}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="value"
-                                            stroke="#185FA5"
-                                            strokeWidth={4}
-                                            dot={{
-                                                r: 6,
-                                                fill: "#185FA5",
-                                                strokeWidth: 2,
-                                                stroke: "#0f172a",
-                                            }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-                        <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10">
-                            <h3 className="font-bold text-xl text-white mb-8 flex items-center gap-3">
-                                <PlusCircle className="w-6 h-6 text-brand" />
-                                Serviços Rápidos
-                            </h3>
-                            <div className="grid sm:grid-cols-3 gap-6">
-                                <QuickAction
-                                    icon={<Video className="w-8 h-8" />}
-                                    label="Agendar Reunião"
-                                />
-                                <QuickAction
-                                    icon={<FileText className="w-8 h-8" />}
-                                    label="Solictar Guia"
-                                />
-                                <QuickAction
-                                    icon={<CheckCircle2 className="w-8 h-8" />}
-                                    label="Validar NF-e"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 flex flex-col">
-                            <h3 className="font-bold text-xl text-white mb-8 flex items-center gap-3">
-                                <Clock className="w-6 h-6 text-brand" />
-                                Calendário
-                            </h3>
-                            <div className="space-y-6 flex-grow">
-                                {mockTasks.map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="flex items-center gap-5 p-4 rounded-[20px] hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5"
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            void handleExportFinancialPdf()
+                                        }
+                                        disabled={isExportingFinancialPdf}
+                                        className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors disabled:cursor-wait disabled:opacity-60"
                                     >
-                                        <div
-                                            className={cn(
-                                                "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                                                task.status === "COMPLETED"
-                                                    ? "bg-success text-white"
-                                                    : "bg-white/5 text-white/40",
-                                            )}
-                                        >
-                                            {task.status === "COMPLETED" ? (
-                                                <CheckCircle2 className="w-6 h-6" />
-                                            ) : (
-                                                <Clock className="w-6 h-6" />
-                                            )}
-                                        </div>
-                                        <div className="flex-grow">
-                                            <p className="text-sm font-bold text-white mb-1">
-                                                {task.title}
-                                            </p>
-                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-tighter">
-                                                {task.dueDate}
-                                            </p>
-                                        </div>
-                                        <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-brand transition-colors" />
-                                    </div>
-                                ))}
+                                        {isExportingFinancialPdf
+                                            ? "Exportando..."
+                                            : "Exportar PDF"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            /*
+                                             * Direciona para o financeiro e abre
+                                             * o formulário de novo lançamento.
+                                             */
+                                            setActiveTab("financeiro");
+                                            setFinancialEntryError("");
+                                            setFinancialEntryMessage("");
+                                            setIsFinancialEntryModalOpen(true);
+                                        }}
+                                        className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40"
+                                    >
+                                        Novo Lançamento
+                                    </button>
+                                </div>
                             </div>
-                            <button className="mt-8 w-full py-4 text-xs font-bold uppercase tracking-[0.2em] text-brand hover:bg-brand/10 border border-brand/20 rounded-2xl transition-all">
-                                Painel Geral
-                            </button>
+                        </div>
+                        {/*
+                         * Exibe na tela inicial o mesmo resumo calculado
+                         * a partir dos lançamentos financeiros do usuário.
+                         */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <StatCard
+                                title="Receitas"
+                                value={formatCurrencyValue(
+                                    financialSummary.revenue,
+                                )}
+                                trend="Entradas"
+                                trendUp={true}
+                            />
+
+                            <StatCard
+                                title="Despesas"
+                                value={formatCurrencyValue(
+                                    financialSummary.expenses,
+                                )}
+                                trend="Saídas"
+                                trendUp={false}
+                            />
+
+                            <StatCard
+                                title="Saldo"
+                                value={formatCurrencyValue(financialBalance)}
+                                trend={
+                                    financialBalance >= 0
+                                        ? "Positivo"
+                                        : "Negativo"
+                                }
+                                trendUp={financialBalance >= 0}
+                            />
+
+                            <StatCard
+                                title="Lançamentos"
+                                value={String(financialEntries.length)}
+                                trend="Total"
+                                trendUp={true}
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 shadow-2xl">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h3 className="font-bold text-xl text-white tracking-tight">
+                                            Controle Mensal
+                                        </h3>
+                                        <p className="text-xs text-white/20 font-bold uppercase tracking-widest mt-1">
+                                            Faturamento vs Despesas
+                                        </p>
+                                    </div>
+                                    <TrendingUp className="w-6 h-6 text-brand" />
+                                </div>
+                                <div className="h-72">
+                                    <ResponsiveContainer
+                                        width="100%"
+                                        height="100%"
+                                        initialDimension={{
+                                            width: 1,
+                                            height: 288,
+                                        }}
+                                    >
+                                        <BarChart data={mockChartData}>
+                                            <CartesianGrid
+                                                strokeDasharray="3 3"
+                                                vertical={false}
+                                                stroke="rgba(255,255,255,0.05)"
+                                            />
+                                            <XAxis
+                                                dataKey="month"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{
+                                                    fontSize: 10,
+                                                    fill: "rgba(255,255,255,0.3)",
+                                                    fontWeight: "bold",
+                                                }}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{
+                                                    fontSize: 10,
+                                                    fill: "rgba(255,255,255,0.3)",
+                                                    fontWeight: "bold",
+                                                }}
+                                            />
+                                            <Tooltip
+                                                cursor={{
+                                                    fill: "rgba(255,255,255,0.05)",
+                                                }}
+                                                contentStyle={{
+                                                    backgroundColor: "#0f172a",
+                                                    borderRadius: "16px",
+                                                    border: "1px solid rgba(255,255,255,0.1)",
+                                                    boxShadow:
+                                                        "0 25px 50px -12px rgb(0 0 0 / 0.5)",
+                                                }}
+                                            />
+                                            <Bar
+                                                dataKey="value"
+                                                fill="#0C447C"
+                                                radius={[6, 6, 0, 0]}
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 shadow-2xl">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h3 className="font-bold text-xl text-white tracking-tight">
+                                            Atividade
+                                        </h3>
+                                        <p className="text-xs text-white/20 font-bold uppercase tracking-widest mt-1">
+                                            Frequência Semanal
+                                        </p>
+                                    </div>
+                                    <Clock className="w-6 h-6 text-brand" />
+                                </div>
+                                <div className="h-72">
+                                    <ResponsiveContainer
+                                        width="100%"
+                                        height="100%"
+                                        initialDimension={{
+                                            width: 1,
+                                            height: 288,
+                                        }}
+                                    >
+                                        <LineChart data={mockWeeklyData}>
+                                            <CartesianGrid
+                                                strokeDasharray="3 3"
+                                                vertical={false}
+                                                stroke="rgba(255,255,255,0.05)"
+                                            />
+                                            <XAxis
+                                                dataKey="day"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{
+                                                    fontSize: 10,
+                                                    fill: "rgba(255,255,255,0.3)",
+                                                    fontWeight: "bold",
+                                                }}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{
+                                                    fontSize: 10,
+                                                    fill: "rgba(255,255,255,0.3)",
+                                                    fontWeight: "bold",
+                                                }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: "#0f172a",
+                                                    borderRadius: "16px",
+                                                    border: "1px solid rgba(255,255,255,0.1)",
+                                                }}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="value"
+                                                stroke="#185FA5"
+                                                strokeWidth={4}
+                                                dot={{
+                                                    r: 6,
+                                                    fill: "#185FA5",
+                                                    strokeWidth: 2,
+                                                    stroke: "#0f172a",
+                                                }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+                            <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10">
+                                <h3 className="font-bold text-xl text-white mb-8 flex items-center gap-3">
+                                    <PlusCircle className="w-6 h-6 text-brand" />
+                                    Serviços Rápidos
+                                </h3>
+                                <div className="grid sm:grid-cols-3 gap-6">
+                                    <QuickAction
+                                        icon={<Video className="w-8 h-8" />}
+                                        label="Agendar Reunião"
+                                    />
+                                    <QuickAction
+                                        icon={<FileText className="w-8 h-8" />}
+                                        label="Solictar Guia"
+                                    />
+                                    <QuickAction
+                                        icon={
+                                            <CheckCircle2 className="w-8 h-8" />
+                                        }
+                                        label="Validar NF-e"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[32px] border border-white/10 flex flex-col">
+                                <h3 className="font-bold text-xl text-white mb-8 flex items-center gap-3">
+                                    <Clock className="w-6 h-6 text-brand" />
+                                    Calendário
+                                </h3>
+                                <div className="space-y-6 flex-grow">
+                                    {mockTasks.map((task) => (
+                                        <div
+                                            key={task.id}
+                                            className="flex items-center gap-5 p-4 rounded-[20px] hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5"
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                                    task.status === "COMPLETED"
+                                                        ? "bg-success text-white"
+                                                        : "bg-white/5 text-white/40",
+                                                )}
+                                            >
+                                                {task.status === "COMPLETED" ? (
+                                                    <CheckCircle2 className="w-6 h-6" />
+                                                ) : (
+                                                    <Clock className="w-6 h-6" />
+                                                )}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <p className="text-sm font-bold text-white mb-1">
+                                                    {task.title}
+                                                </p>
+                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-tighter">
+                                                    {task.dueDate}
+                                                </p>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-brand transition-colors" />
+                                        </div>
+                                    ))}
+                                </div>
+                                <button className="mt-8 w-full py-4 text-xs font-bold uppercase tracking-[0.2em] text-brand hover:bg-brand/10 border border-brand/20 rounded-2xl transition-all">
+                                    Painel Geral
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </main>
         </div>
     );

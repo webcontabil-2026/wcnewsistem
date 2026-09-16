@@ -1,22 +1,23 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LancamentoFinanceiro extends Model
 {
     use HasFactory;
 
     /**
-     * Nome da tabela correspondente no banco.
+     * Tabela utilizada pelo model.
      */
     protected $table = 'lancamentos_financeiros';
 
     /**
-     * Campos que podem ser preenchidos pela aplicação.
+     * Campos permitidos para preenchimento em massa.
      */
     protected $fillable = [
         'cliente_id',
@@ -33,7 +34,7 @@ class LancamentoFinanceiro extends Model
     ];
 
     /**
-     * Converte automaticamente os campos vindos do banco.
+     * Conversões automáticas aplicadas aos dados do banco.
      */
     protected function casts(): array
     {
@@ -46,7 +47,7 @@ class LancamentoFinanceiro extends Model
     }
 
     /**
-     * Retorna o cliente proprietário do lançamento.
+     * Cliente proprietário do lançamento.
      */
     public function cliente(): BelongsTo
     {
@@ -57,7 +58,7 @@ class LancamentoFinanceiro extends Model
     }
 
     /**
-     * Retorna a categoria financeira do lançamento.
+     * Categoria financeira associada ao lançamento.
      */
     public function categoria(): BelongsTo
     {
@@ -68,7 +69,7 @@ class LancamentoFinanceiro extends Model
     }
 
     /**
-     * Retorna a empresa relacionada ao lançamento, quando existir.
+     * Empresa relacionada ao lançamento, quando existir.
      */
     public function empresa(): BelongsTo
     {
@@ -77,14 +78,15 @@ class LancamentoFinanceiro extends Model
             'empresa_id'
         );
     }
+
     /**
- * Retorna os documentos vinculados ao lançamento financeiro.
- */
-public function documentos(): HasMany
-{
-    return $this->hasMany(
-        Documento::class,
-        'lancamento_financeiro_id'
-    );
-}
+     * Documentos vinculados ao lançamento financeiro.
+     */
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(
+            Documento::class,
+            'lancamento_financeiro_id'
+        );
+    }
 }

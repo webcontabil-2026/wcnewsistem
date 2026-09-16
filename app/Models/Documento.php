@@ -11,29 +11,29 @@ class Documento extends Model
     use HasFactory;
 
     /**
-     * Nome da tabela correspondente no banco.
+     * Tabela utilizada pelo model.
      */
     protected $table = 'documentos';
 
     /**
-     * Campos que podem ser preenchidos pela aplicação.
+     * Campos permitidos para preenchimento em massa.
      */
- protected $fillable = [
-    'cliente_id',
-    'empresa_id',
-    'lancamento_financeiro_id',
-    'enviado_por',
-    'enviado_para',
-    'nome_original',
-    'nome_arquivo',
-    'caminho',
-    'tipo_mime',
-    'tamanho',
-    'status',
-];
+    protected $fillable = [
+        'cliente_id',
+        'empresa_id',
+        'lancamento_financeiro_id',
+        'enviado_por',
+        'enviado_para',
+        'nome_original',
+        'nome_arquivo',
+        'caminho',
+        'tipo_mime',
+        'tamanho',
+        'status',
+    ];
 
     /**
-     * Converte automaticamente os campos vindos do banco.
+     * Conversões automáticas aplicadas aos dados do banco.
      */
     protected function casts(): array
     {
@@ -43,7 +43,7 @@ class Documento extends Model
     }
 
     /**
-     * Retorna o cliente relacionado ao documento.
+     * Cliente proprietário do documento.
      */
     public function cliente(): BelongsTo
     {
@@ -54,7 +54,7 @@ class Documento extends Model
     }
 
     /**
-     * Retorna a empresa relacionada ao documento, quando existir.
+     * Empresa relacionada ao documento, quando existir.
      */
     public function empresa(): BelongsTo
     {
@@ -65,7 +65,7 @@ class Documento extends Model
     }
 
     /**
-     * Retorna o usuário que enviou o documento.
+     * Usuário responsável pelo envio do documento.
      */
     public function enviadoPor(): BelongsTo
     {
@@ -75,8 +75,8 @@ class Documento extends Model
         );
     }
 
-     /**
-     * Retorna o usuário destinatário do documento.
+    /**
+     * Usuário destinatário do documento, quando existir.
      */
     public function enviadoPara(): BelongsTo
     {
@@ -87,7 +87,7 @@ class Documento extends Model
     }
 
     /**
-     * Retorna o lançamento financeiro relacionado ao documento.
+     * Lançamento financeiro associado ao documento, quando aplicável.
      */
     public function lancamentoFinanceiro(): BelongsTo
     {
