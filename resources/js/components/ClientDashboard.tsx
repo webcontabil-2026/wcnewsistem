@@ -2,6 +2,10 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+import ClientSidebar from "./client/ClientSidebar";
+import FinanceiroCliente from "./client/FinanceiroCliente";
+import NovoLancamentoModal from "./client/NovoLancamentoModal";
+import { gerarRelatorioFinanceiro } from "./client/financeiro/RelatorioFinanceiro";
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import {
     BarChart,
@@ -15,29 +19,16 @@ import {
     Line,
 } from "recharts";
 import {
-    LayoutDashboard,
-    Users,
     FileText,
-    FolderOpen,
-    MessageSquare,
-    WalletCards,
-    Calendar,
     PlusCircle,
-    Settings,
-    LogOut,
     Bell,
     Search,
     Video,
     ChevronRight,
-    ChevronDown,
-    ChevronUp,
     TrendingUp,
     Clock,
     CheckCircle2,
-    PanelLeftClose,
-    PanelLeftOpen,
     Menu,
-    X,
     UserRound,
     SlidersHorizontal,
     ShieldCheck,
@@ -53,149 +44,22 @@ import { User, ReportData, Task } from "../types";
 import { cn } from "../lib/utils";
 import { ApiError, apiRequest } from "../lib/api";
 import ThemeToggle from "./ThemeToggle";
-import BrandLogo from "./BrandLogo";
-type FinancialEntryType = "receita" | "despesa" | "transferencia" | "ajuste";
-type FinancialChartPeriod = 1 | 7 | 15 | 30 | 90 | 180 | 365;
-/*
- * Representa o comprovante que já foi armazenado pelo Laravel.
- */
-interface FinancialAttachment {
-    name: string;
-    mimeType: string | null;
-    size: number | null;
-    url: string;
-}
-interface FinancialEntry {
-    id: number;
-    type: FinancialEntryType;
-    description: string;
-    category: string;
-    amount: number;
-    date: string;
-    attachment: FinancialAttachment | null;
-}
-interface FinancialBarShapeProps {
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-    fillColor: string;
-}
+import {
+    AnexoFinanceiro,
+    LancamentoFinanceiro,
+    PeriodoGraficoFinanceiro,
+    TipoLancamentoFinanceiro,
+} from "./client/financeiro/tipos";
+import {
+    parseCurrencyInput,
+    formatCurrencyValue,
+} from "./client/financeiro/formatadores";
+import { criarDadosGraficoFinanceiro } from "./client/financeiro/grafico";
 
-/*
- * Desenha as colunas com cores fixas para impedir
- * que o tema substitua verde e vermelho pelo azul da marca.
- */
-function FinancialBarShape({
-    x = 0,
-    y = 0,
-    width = 0,
-    height = 0,
-    fillColor,
-}: FinancialBarShapeProps) {
-    if (width <= 0 || height <= 0) {
-        return null;
-    }
-
-    const radius = Math.min(8, width / 2, height / 2);
-
-    return (
-        <rect
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            rx={radius}
-            ry={radius}
-            fill={fillColor}
-        />
-    );
-}
 interface ClientDashboardProps {
     user: User;
     onLogout: () => void;
 }
-/*
- * Formata o valor digitado no padrão monetário brasileiro.
- * Exemplo: 123456 será apresentado como R$ 1.234,56.
- */
-const formatCurrencyInput = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 13);
-
-    if (!digits) {
-        return "";
-    }
-
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 2,
-    }).format(Number(digits) / 100);
-};
-
-/*
- * Converte o valor formatado para número antes do salvamento.
- */
-const parseCurrencyInput = (value: string) => {
-    const digits = value.replace(/\D/g, "");
-
-    return digits ? Number(digits) / 100 : 0;
-};
-/*
- * Formata números já salvos para apresentação nos cards financeiros.
- */
-const formatCurrencyValue = (value: number) =>
-    new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 2,
-    }).format(value);
-/*
- * Reduz gradualmente a fonte quando o valor monetário é muito comprido.
- */
-const getFinancialValueTextSize = (value: number) => {
-    const formattedValue = formatCurrencyValue(Math.abs(value));
-
-    if (formattedValue.length >= 19) {
-        return "text-sm";
-    }
-
-    if (formattedValue.length >= 16) {
-        return "text-base";
-    }
-
-    if (formattedValue.length >= 13) {
-        return "text-lg";
-    }
-
-    return "text-2xl";
-};
-const financialTypeLabels: Record<FinancialEntryType, string> = {
-    receita: "Receita",
-    despesa: "Despesa",
-    transferencia: "Transferência",
-    ajuste: "Ajuste financeiro",
-};
-
-const financialCategoryLabels: Record<string, string> = {
-    servicos: "Serviços",
-    honorarios: "Honorários",
-    impostos: "Impostos",
-    folha: "Folha de pagamento",
-    fornecedores: "Fornecedores",
-    equipamentos: "Equipamentos",
-    reembolso: "Reembolso",
-    outros: "Outros",
-};
-
-/*
- * Formata a data sem alterar o dia por causa do fuso horário.
- */
-const formatFinancialDate = (date: string) => {
-    const [year, month, day] = date.split("-");
-
-    return `${day}/${month}/${year}`;
-};
 const mockChartData: ReportData[] = [
     { month: "Jan", value: 4000 },
     { month: "Fev", value: 3000 },
@@ -238,19 +102,16 @@ export default function ClientDashboard({
     onLogout,
 }: ClientDashboardProps) {
     const [activeTab, setActiveTab] = useState("inicio");
-    /*
-     * Controla o formulário de novos lançamentos financeiros.
-     * Os dados permanecem temporariamente no navegador até a integração com o banco.
-     */
+   
     const [isFinancialEntryModalOpen, setIsFinancialEntryModalOpen] =
         useState(false);
 
-    const [financialEntries, setFinancialEntries] = useState<FinancialEntry[]>(
-        [],
-    );
+    const [financialEntries, setFinancialEntries] = useState<
+        LancamentoFinanceiro[]
+    >([]);
 
     const [financialEntryForm, setFinancialEntryForm] = useState({
-        type: "receita" as FinancialEntryType,
+        type: "receita" as TipoLancamentoFinanceiro,
         description: "",
         category: "",
         amount: "",
@@ -277,11 +138,8 @@ export default function ClientDashboard({
      * O valor representa a quantidade de dias considerados.
      */
     const [financialChartPeriod, setFinancialChartPeriod] =
-        useState<FinancialChartPeriod>(30);
-    /*
-     * Armazena temporariamente o comprovante selecionado.
-     * TODO: enviar o arquivo ao armazenamento seguro do servidor.
-     */
+        useState<PeriodoGraficoFinanceiro>(30);
+    
     const [financialEntryAttachment, setFinancialEntryAttachment] =
         useState<File | null>(null);
     /*
@@ -354,49 +212,7 @@ export default function ClientDashboard({
     const [accountDeletionError, setAccountDeletionError] = useState("");
     const profileImageInputRef = useRef<HTMLInputElement | null>(null);
 
-    /*
-     * Controla a rolagem das funções do menu lateral.
-     * As setas aparecem somente quando existe conteúdo
-     * escondido acima ou abaixo da área visível.
-     */
-    const sidebarNavRef = useRef<HTMLElement | null>(null);
-    const [canScrollUp, setCanScrollUp] = useState(false);
-    const [canScrollDown, setCanScrollDown] = useState(false);
-
-    const updateSidebarScroll = () => {
-        const menu = sidebarNavRef.current;
-
-        if (!menu) {
-            return;
-        }
-
-        setCanScrollUp(menu.scrollTop > 1);
-
-        setCanScrollDown(
-            menu.scrollTop + menu.clientHeight < menu.scrollHeight - 1,
-        );
-    };
-
-    /*
-     * Move o menu suavemente sem impedir a rolagem
-     * pelo mouse, touchpad ou toque na tela.
-     */
-    const scrollSidebar = (direction: "up" | "down") => {
-        sidebarNavRef.current?.scrollBy({
-            top: direction === "down" ? 180 : -180,
-            behavior: "smooth",
-        });
-    };
-
-    useEffect(() => {
-        updateSidebarScroll();
-
-        window.addEventListener("resize", updateSidebarScroll);
-
-        return () => {
-            window.removeEventListener("resize", updateSidebarScroll);
-        };
-    }, []);
+  
     /*
      * Carrega do banco os lançamentos pertencentes ao usuário atual.
      */
@@ -408,7 +224,7 @@ export default function ClientDashboard({
 
             try {
                 const response = await apiRequest<{
-                    entries: FinancialEntry[];
+                    entries: LancamentoFinanceiro[];
                 }>("/financial-entries");
 
                 if (isComponentMounted) {
@@ -436,19 +252,11 @@ export default function ClientDashboard({
         };
     }, []);
     /*
-     * Controla a largura do menu lateral.
-     * Quando verdadeiro, apenas os ícones das funcionalidades permanecem visíveis.
-     */
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    /*
      * Controla a abertura do menu em celulares e tablets.
      * Em telas grandes, o menu lateral permanente continua sendo utilizado.
      */
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    /*
-     * Valida e registra temporariamente um lançamento financeiro.
-     * TODO: enviar o lançamento ao servidor quando o banco estiver conectado.
-     */
+  
     /*
      * Valida o formulário e salva o lançamento no Laravel.
      */
@@ -499,7 +307,7 @@ export default function ClientDashboard({
 
             const response = await apiRequest<{
                 message: string;
-                entry: FinancialEntry;
+                entry: LancamentoFinanceiro;
             }>("/financial-entries", {
                 method: "POST",
                 body: requestData,
@@ -562,165 +370,25 @@ export default function ClientDashboard({
 
     const financialBalance =
         financialSummary.revenue - financialSummary.expenses;
-    /*
-     * Agrupa receitas e despesas pela data do lançamento.
-     * Transferências e ajustes não entram no gráfico nesta etapa.
-     */
-    /*
-     * Filtra os lançamentos pelo período escolhido e agrupa os valores.
-     * Períodos de até 30 dias são agrupados por dia.
-     * Períodos maiores são agrupados por mês.
-     */
-    /*
-     * Monta um período contínuo para o gráfico.
-     * O intervalo termina hoje ou na data futura mais recente cadastrada.
-     */
-    const financialChartData = (() => {
-        const chartEntries = financialEntries.filter(
-            (entry) => entry.type === "receita" || entry.type === "despesa",
-        );
-
-        const today = new Date();
-
-        today.setHours(23, 59, 59, 999);
-
-        const referenceDate = chartEntries.reduce((latestDate, entry) => {
-            const [year, month, day] = entry.date.split("-").map(Number);
-
-            const entryDate = new Date(year, month - 1, day);
-
-            return entryDate > latestDate ? entryDate : latestDate;
-        }, new Date(today));
-
-        referenceDate.setHours(23, 59, 59, 999);
-
-        const groupByMonth = financialChartPeriod >= 90;
-
-        const groupedEntries: Record<
-            string,
-            {
-                date: string;
-                label: string;
-                receitas: number;
-                despesas: number;
-            }
-        > = {};
-
-        let periodStart: Date;
-
-        if (groupByMonth) {
-            const monthCount =
-                financialChartPeriod === 90
-                    ? 3
-                    : financialChartPeriod === 180
-                      ? 6
-                      : 12;
-
-            periodStart = new Date(
-                referenceDate.getFullYear(),
-                referenceDate.getMonth() - (monthCount - 1),
-                1,
-            );
-
-            const currentMonth = new Date(periodStart);
-
-            while (currentMonth <= referenceDate) {
-                const year = currentMonth.getFullYear();
-                const month = currentMonth.getMonth() + 1;
-                const key = `${year}-${String(month).padStart(2, "0")}`;
-
-                groupedEntries[key] = {
-                    date: key,
-                    label: `${String(month).padStart(2, "0")}/${String(
-                        year,
-                    ).slice(-2)}`,
-                    receitas: 0,
-                    despesas: 0,
-                };
-
-                currentMonth.setMonth(currentMonth.getMonth() + 1);
-            }
-        } else {
-            periodStart = new Date(referenceDate);
-
-            periodStart.setHours(0, 0, 0, 0);
-            periodStart.setDate(
-                periodStart.getDate() - (financialChartPeriod - 1),
-            );
-
-            const currentDay = new Date(periodStart);
-
-            while (currentDay <= referenceDate) {
-                const year = currentDay.getFullYear();
-                const month = currentDay.getMonth() + 1;
-                const day = currentDay.getDate();
-
-                const key = `${year}-${String(month).padStart(
-                    2,
-                    "0",
-                )}-${String(day).padStart(2, "0")}`;
-
-                groupedEntries[key] = {
-                    date: key,
-                    label: `${String(day).padStart(2, "0")}/${String(
-                        month,
-                    ).padStart(2, "0")}`,
-                    receitas: 0,
-                    despesas: 0,
-                };
-
-                currentDay.setDate(currentDay.getDate() + 1);
-            }
-        }
-
-        chartEntries.forEach((entry) => {
-            const [year, month, day] = entry.date.split("-").map(Number);
-
-            const entryDate = new Date(year, month - 1, day);
-
-            if (entryDate < periodStart || entryDate > referenceDate) {
-                return;
-            }
-
-            const groupKey = groupByMonth
-                ? `${year}-${String(month).padStart(2, "0")}`
-                : entry.date;
-
-            const chartGroup = groupedEntries[groupKey];
-
-            if (!chartGroup) {
-                return;
-            }
-
-            if (entry.type === "receita") {
-                chartGroup.receitas += entry.amount;
-            }
-
-            if (entry.type === "despesa") {
-                chartGroup.despesas += entry.amount;
-            }
-        });
-
-        return Object.values(groupedEntries);
-    })();
+    
+    const financialChartData = criarDadosGraficoFinanceiro(
+    financialEntries,
+    financialChartPeriod,
+);
     /*
      * Abre temporariamente o anexo selecionado em uma nova guia.
      */
     /*
      * Abre o comprovante protegido utilizando a rota do Laravel.
      */
-    const handleOpenFinancialAttachment = (attachment: FinancialAttachment) => {
+    const handleOpenFinancialAttachment = (attachment: AnexoFinanceiro) => {
         window.open(attachment.url, "_blank", "noopener,noreferrer");
     };
 
     /*
-     * Exclui um lançamento após a confirmação do usuário.
-     * TODO: realizar a exclusão também no servidor.
-     */
-    /*
      * Exclui o lançamento do banco e depois atualiza o painel.
      */
-    const handleDeleteFinancialEntry = async (entry: FinancialEntry) => {
+    const handleDeleteFinancialEntry = async (entry: LancamentoFinanceiro) => {
         const confirmed = window.confirm(
             `Deseja excluir o lançamento "${entry.description}"?`,
         );
@@ -757,643 +425,54 @@ export default function ClientDashboard({
      * Gera um relatório em PDF considerando o período selecionado no gráfico.
      * Os pacotes são carregados apenas quando o usuário solicita a exportação.
      */
-    const handleExportFinancialPdf = async () => {
-        setFinancialExportError("");
-        setFinancialEntryMessage("");
+   const handleExportFinancialPdf = async () => {
+    setFinancialExportError("");
+    setFinancialEntryMessage("");
+    setIsExportingFinancialPdf(true);
 
-        /*
-         * Usa as mesmas datas apresentadas no gráfico para filtrar o relatório.
-         */
-        const visiblePeriodKeys = new Set(
-            financialChartData.map((item) => item.date),
+    try {
+        await gerarRelatorioFinanceiro({
+            usuario: user,
+            lancamentos: financialEntries,
+            periodo: financialChartPeriod,
+            datasVisiveis: financialChartData.map((item) => item.date),
+        });
+
+        setFinancialEntryMessage(
+            "Relatório financeiro exportado com sucesso.",
+        );
+    } catch (error) {
+        console.error(
+            "Erro ao gerar o relatório financeiro:",
+            error,
         );
 
-        const reportEntries = financialEntries
-            .filter((entry) => {
-                const entryPeriodKey =
-                    financialChartPeriod >= 90
-                        ? entry.date.slice(0, 7)
-                        : entry.date;
-
-                return visiblePeriodKeys.has(entryPeriodKey);
-            })
-            .sort((firstEntry, secondEntry) =>
-                secondEntry.date.localeCompare(firstEntry.date),
-            );
-
-        if (reportEntries.length === 0) {
-            setFinancialExportError(
-                "Não existem lançamentos no período selecionado para exportar.",
-            );
-            return;
-        }
-
-        setIsExportingFinancialPdf(true);
-
-        try {
-            const [{ jsPDF }, { autoTable }] = await Promise.all([
-                import("jspdf"),
-                import("jspdf-autotable"),
-            ]);
-
-            const periodLabels: Record<FinancialChartPeriod, string> = {
-                1: "1 dia",
-                7: "1 semana",
-                15: "15 dias",
-                30: "1 mês",
-                90: "3 meses",
-                180: "6 meses",
-                365: "12 meses",
-            };
-
-            const reportSummary = reportEntries.reduce(
-                (summary, entry) => {
-                    if (entry.type === "receita") {
-                        summary.revenue += entry.amount;
-                    }
-
-                    if (entry.type === "despesa") {
-                        summary.expenses += entry.amount;
-                    }
-
-                    return summary;
-                },
-                {
-                    revenue: 0,
-                    expenses: 0,
-                },
-            );
-
-            const reportBalance =
-                reportSummary.revenue - reportSummary.expenses;
-
-            const document = new jsPDF({
-                orientation: "landscape",
-                unit: "mm",
-                format: "a4",
-            });
-
-            const pageWidth = document.internal.pageSize.getWidth();
-
-            /*
-             * Cabeçalho do relatório.
-             */
-            document.setFillColor(12, 68, 124);
-            document.rect(0, 0, pageWidth, 28, "F");
-
-            document.setTextColor(255, 255, 255);
-            document.setFont("helvetica", "bold");
-            document.setFontSize(11);
-            document.text("WebContabil", 14, 11);
-
-            document.setFontSize(17);
-            document.text("Relatório financeiro", 14, 21);
-
-            /*
-             * Informações do relatório.
-             */
-            document.setTextColor(40, 50, 65);
-            document.setFont("helvetica", "normal");
-            document.setFontSize(9);
-
-            document.text(`Cliente: ${user.name}`, 14, 37);
-            document.text(
-                `Período selecionado: ${periodLabels[financialChartPeriod]}`,
-                14,
-                43,
-            );
-
-            document.text(
-                `Emitido em: ${new Intl.DateTimeFormat("pt-BR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                }).format(new Date())}`,
-                14,
-                49,
-            );
-
-            /*
-             * Resumo financeiro.
-             */
-            document.setFont("helvetica", "bold");
-            document.setFontSize(9);
-
-            document.setTextColor(5, 150, 105);
-            document.text(
-                `Receitas: ${formatCurrencyValue(reportSummary.revenue)}`,
-                105,
-                38,
-            );
-
-            document.setTextColor(220, 38, 38);
-            document.text(
-                `Despesas: ${formatCurrencyValue(reportSummary.expenses)}`,
-                105,
-                45,
-            );
-
-            document.setTextColor(
-                reportBalance >= 0 ? 5 : 220,
-                reportBalance >= 0 ? 150 : 38,
-                reportBalance >= 0 ? 105 : 38,
-            );
-
-            document.text(
-                `Saldo: ${formatCurrencyValue(reportBalance)}`,
-                190,
-                38,
-            );
-
-            document.setTextColor(40, 50, 65);
-            document.text(`Lançamentos: ${reportEntries.length}`, 190, 45);
-
-            /*
-             * Tabela de movimentações.
-             */
-            autoTable(document, {
-                startY: 58,
-                head: [
-                    [
-                        "Data",
-                        "Tipo",
-                        "Categoria",
-                        "Descrição",
-                        "Valor",
-                        "Anexo",
-                    ],
-                ],
-                body: reportEntries.map((entry) => {
-                    const valuePrefix =
-                        entry.type === "receita"
-                            ? "+"
-                            : entry.type === "despesa"
-                              ? "-"
-                              : "";
-
-                    return [
-                        formatFinancialDate(entry.date),
-                        financialTypeLabels[entry.type],
-                        financialCategoryLabels[entry.category] ??
-                            entry.category,
-                        entry.description,
-                        `${valuePrefix}${formatCurrencyValue(entry.amount)}`,
-                        entry.attachment?.name ?? "Sem anexo",
-                    ];
-                }),
-                theme: "grid",
-                headStyles: {
-                    fillColor: [12, 68, 124],
-                    textColor: [255, 255, 255],
-                    fontStyle: "bold",
-                },
-                styles: {
-                    font: "helvetica",
-                    fontSize: 8,
-                    cellPadding: 2.5,
-                    overflow: "linebreak",
-                    textColor: [40, 50, 65],
-                },
-                alternateRowStyles: {
-                    fillColor: [242, 247, 252],
-                },
-                columnStyles: {
-                    0: { cellWidth: 24 },
-                    1: { cellWidth: 28 },
-                    2: { cellWidth: 38 },
-                    3: { cellWidth: 75 },
-                    4: { cellWidth: 35 },
-                    5: { cellWidth: 55 },
-                },
-                didParseCell: (tableData) => {
-                    if (
-                        tableData.section !== "body" ||
-                        tableData.column.index !== 4
-                    ) {
-                        return;
-                    }
-
-                    const entry = reportEntries[tableData.row.index];
-
-                    if (entry?.type === "receita") {
-                        tableData.cell.styles.textColor = [5, 150, 105];
-                        tableData.cell.styles.fontStyle = "bold";
-                    }
-
-                    if (entry?.type === "despesa") {
-                        tableData.cell.styles.textColor = [220, 38, 38];
-                        tableData.cell.styles.fontStyle = "bold";
-                    }
-                },
-            });
-
-            /*
-             * Adiciona numeração em todas as páginas geradas.
-             */
-            const pageCount = document.getNumberOfPages();
-
-            for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-                document.setPage(pageNumber);
-
-                const pageHeight = document.internal.pageSize.getHeight();
-
-                document.setFont("helvetica", "normal");
-                document.setFontSize(8);
-                document.setTextColor(100, 110, 125);
-
-                document.text(
-                    `Página ${pageNumber} de ${pageCount}`,
-                    pageWidth - 14,
-                    pageHeight - 8,
-                    {
-                        align: "right",
-                    },
-                );
-            }
-
-            const currentDate = new Date().toISOString().slice(0, 10);
-
-            document.save(`relatorio-financeiro-${currentDate}.pdf`);
-
-            setFinancialEntryMessage(
-                "Relatório financeiro exportado com sucesso.",
-            );
-        } catch (error) {
-            console.error("Erro ao gerar o relatório financeiro:", error);
-
-            setFinancialExportError(
-                "Não foi possível gerar o relatório financeiro.",
-            );
-        } finally {
-            setIsExportingFinancialPdf(false);
-        }
-    };
+        setFinancialExportError(
+            error instanceof Error
+                ? error.message
+                : "Não foi possível gerar o relatório financeiro.",
+        );
+    } finally {
+        setIsExportingFinancialPdf(false);
+    }
+};
     return (
-        <div className="system-layout flex h-screen overflow-hidden">
-            <aside
-                className={cn(
-                    /*
-                     * O menu altera somente a própria largura.
-                     * O conteúdo principal utiliza flex-grow e ocupa automaticamente
-                     * todo o espaço liberado quando o menu é recolhido.
-                     */
-                    "hidden lg:flex shrink-0 flex-col bg-white/5 backdrop-blur-2xl",
-                    "border-r border-white/10 transition-[width] duration-300",
-                    isSidebarCollapsed ? "w-24" : "w-72",
-                )}
-            >
-                <div
-                    className={cn(
-                        "min-h-24 px-5 flex items-center border-b border-white/5",
-                        isSidebarCollapsed
-                            ? "justify-center"
-                            : "justify-between gap-3",
-                    )}
-                >
-                    <div
-                        className={cn(
-                            "flex items-center min-w-0",
-                            isSidebarCollapsed ? "justify-center" : "gap-3",
-                        )}
-                    >
-                        <BrandLogo
-                            size="client"
-                            className="shadow-lg shadow-brand/40"
-                        />
+    <div className="system-layout flex h-screen overflow-hidden">
+        <ClientSidebar
+            activeTab={activeTab}
+            menuMobileAberto={isMobileMenuOpen}
+            onSelecionarAba={setActiveTab}
+            onAbrirConfiguracoes={() => {
+                setActiveTab("configuracoes");
+                setSettingsSection("menu");
+            }}
+            onFecharMenuMobile={() =>
+                setIsMobileMenuOpen(false)
+            }
+            onLogout={onLogout}
+        />
 
-                        {!isSidebarCollapsed && (
-                            <span
-                                className="font-bold text-xl tracking-tighter
-                               text-white whitespace-nowrap"
-                            >
-                                WebContabil
-                            </span>
-                        )}
-                    </div>
-
-                    {!isSidebarCollapsed && (
-                        <button
-                            type="button"
-                            onClick={() => setIsSidebarCollapsed(true)}
-                            className="w-10 h-10 shrink-0 rounded-xl
-                           flex items-center justify-center
-                           text-white/40 hover:text-brand
-                           hover:bg-white/5 transition-colors"
-                            aria-label="Recolher menu lateral"
-                            title="Recolher menu"
-                        >
-                            <PanelLeftClose className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-
-                {isSidebarCollapsed && (
-                    <button
-                        type="button"
-                        onClick={() => setIsSidebarCollapsed(false)}
-                        className="mx-auto mt-4 w-11 h-11 rounded-xl
-                       flex items-center justify-center
-                       text-white/40 hover:text-brand
-                       hover:bg-white/5 transition-colors"
-                        aria-label="Expandir menu lateral"
-                        title="Expandir menu"
-                    >
-                        <PanelLeftOpen className="w-5 h-5" />
-                    </button>
-                )}
-                <div className="relative flex-grow min-h-0 py-8">
-                    <nav
-                        ref={sidebarNavRef}
-                        onScroll={updateSidebarScroll}
-                        className={cn(
-                            "wc-sidebar-scroll h-full overflow-y-auto",
-                            "space-y-2 py-6",
-                            isSidebarCollapsed ? "px-3" : "px-6",
-                        )}
-                    >
-                        {/*
-                         * Funções principais disponíveis para o cliente.
-                         * O conteúdo de cada aba será implementado separadamente.
-                         */}
-                        <SidebarItem
-                            active={activeTab === "inicio"}
-                            onClick={() => setActiveTab("inicio")}
-                            icon={<LayoutDashboard className="w-5 h-5" />}
-                            label="Início"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <SidebarItem
-                            active={activeTab === "servicos"}
-                            onClick={() => setActiveTab("servicos")}
-                            icon={<FileText className="w-5 h-5" />}
-                            label="Serviços"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <SidebarItem
-                            active={activeTab === "documentos"}
-                            onClick={() => setActiveTab("documentos")}
-                            icon={<FolderOpen className="w-5 h-5" />}
-                            label="Documentos"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <SidebarItem
-                            active={activeTab === "conversas"}
-                            onClick={() => setActiveTab("conversas")}
-                            icon={<MessageSquare className="w-5 h-5" />}
-                            label="Conversas"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <SidebarItem
-                            active={activeTab === "agenda"}
-                            onClick={() => setActiveTab("agenda")}
-                            icon={<Calendar className="w-5 h-5" />}
-                            label="Agenda Fiscal"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <SidebarItem
-                            active={activeTab === "financeiro"}
-                            onClick={() => setActiveTab("financeiro")}
-                            icon={<WalletCards className="w-5 h-5" />}
-                            label="Financeiro"
-                            collapsed={isSidebarCollapsed}
-                        />
-
-                        <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-                            <SidebarItem
-                                active={activeTab === "configuracoes"}
-                                onClick={() => {
-                                    setActiveTab("configuracoes");
-                                    setSettingsSection("menu");
-                                }}
-                                icon={<Settings className="w-5 h-5" />}
-                                label="Configurações"
-                                collapsed={isSidebarCollapsed}
-                            />
-                            <SidebarItem
-                                active={false}
-                                onClick={onLogout}
-                                icon={<LogOut className="w-5 h-5" />}
-                                label="Sair do sistema"
-                                collapsed={isSidebarCollapsed}
-                                danger
-                            />
-                        </div>
-                    </nav>
-
-                    {canScrollUp && (
-                        <button
-                            type="button"
-                            onClick={() => scrollSidebar("up")}
-                            className="absolute top-0 left-1/2 -translate-x-1/2 z-10
-                                       w-8 h-8 rounded-full
-                                       flex items-center justify-center
-                                       bg-slate-950/40 backdrop-blur-md
-                                       text-white/60 hover:text-white
-                                       hover:bg-slate-950/70
-                                       transition-all"
-                            aria-label="Exibir funções anteriores"
-                            title="Subir no menu"
-                        >
-                            <ChevronUp className="w-4 h-4" />
-                        </button>
-                    )}
-
-                    {canScrollDown && (
-                        <button
-                            type="button"
-                            onClick={() => scrollSidebar("down")}
-                            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10
-                                       w-8 h-8 rounded-full
-                                       flex items-center justify-center
-                                       bg-slate-950/40 backdrop-blur-md
-                                       text-white/60 hover:text-white
-                                       hover:bg-slate-950/70
-                                       transition-all"
-                            aria-label="Exibir mais funções"
-                            title="Descer no menu"
-                        >
-                            <ChevronDown className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
-            </aside>
-
-            {/*
-             * Menu móvel do painel do cliente.
-             * O fundo escurecido fecha o menu quando o usuário toca fora do painel.
-             */}
-            {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    {/*
-                     * Fundo escurecido do menu móvel.
-                     * Ao tocar fora do painel, o menu é fechado.
-                     */}
-                    <button
-                        type="button"
-                        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        aria-label="Fechar menu lateral"
-                    />
-
-                    <aside
-                        className="
-                relative z-10 h-full
-                w-[min(20rem,88vw)]
-                flex flex-col
-                border-r border-white/10
-                bg-slate-900
-                shadow-2xl
-            "
-                        aria-label="Menu do painel do cliente"
-                    >
-                        {/*
-                         * Cabeçalho do menu móvel.
-                         */}
-                        <div
-                            className="
-                    min-h-24 px-5
-                    flex items-center justify-between gap-3
-                    border-b border-white/10
-                "
-                        >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <BrandLogo
-                                    size="client"
-                                    className="shadow-lg shadow-brand/40"
-                                />
-
-                                <span className="font-bold text-xl tracking-tighter text-white whitespace-nowrap">
-                                    WebContabil
-                                </span>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="
-                        w-11 h-11 shrink-0 rounded-xl
-                        flex items-center justify-center
-                        text-white/50
-                        transition-colors
-                        hover:bg-white/5 hover:text-brand
-                    "
-                                aria-label="Fechar menu lateral"
-                                title="Fechar menu"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        {/*
-                         * Navegação principal.
-                         * Mantém as mesmas opções disponíveis no menu desktop.
-                         * Após a escolha de uma função, o menu móvel é fechado.
-                         */}
-                        <nav className="flex-grow overflow-y-auto px-5 py-6 space-y-2">
-                            <SidebarItem
-                                active={activeTab === "inicio"}
-                                onClick={() => {
-                                    setActiveTab("inicio");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<LayoutDashboard className="w-5 h-5" />}
-                                label="Início"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={activeTab === "servicos"}
-                                onClick={() => {
-                                    setActiveTab("servicos");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<FileText className="w-5 h-5" />}
-                                label="Serviços"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={activeTab === "documentos"}
-                                onClick={() => {
-                                    setActiveTab("documentos");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<FolderOpen className="w-5 h-5" />}
-                                label="Documentos"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={activeTab === "conversas"}
-                                onClick={() => {
-                                    setActiveTab("conversas");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<MessageSquare className="w-5 h-5" />}
-                                label="Conversas"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={activeTab === "agenda"}
-                                onClick={() => {
-                                    setActiveTab("agenda");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<Calendar className="w-5 h-5" />}
-                                label="Agenda Fiscal"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={activeTab === "financeiro"}
-                                onClick={() => {
-                                    setActiveTab("financeiro");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<WalletCards className="w-5 h-5" />}
-                                label="Financeiro"
-                                collapsed={false}
-                            />
-                        </nav>
-
-                        {/*
-                         * Opções de conta separadas das funções principais.
-                         */}
-                        <div className="p-5 border-t border-white/10 space-y-2">
-                            <SidebarItem
-                                active={activeTab === "configuracoes"}
-                                onClick={() => {
-                                    setActiveTab("configuracoes");
-                                    setSettingsSection("menu");
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                icon={<Settings className="w-5 h-5" />}
-                                label="Configurações"
-                                collapsed={false}
-                            />
-
-                            <SidebarItem
-                                active={false}
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    onLogout();
-                                }}
-                                icon={<LogOut className="w-5 h-5" />}
-                                label="Encerrar Sessão"
-                                collapsed={false}
-                                danger
-                            />
-                        </div>
-                    </aside>
-                </div>
-            )}
-
-            <main className="min-w-0 flex-grow flex flex-col overflow-x-hidden overflow-y-auto">
+        <main className="min-w-0 flex-grow flex flex-col overflow-x-hidden overflow-y-auto">
                 {" "}
                 {/*
                  * O cabeçalho utiliza altura mínima e espaçamento fluido para manter
@@ -2957,951 +2036,46 @@ export default function ClientDashboard({
                             </div>
                         </section>
                     )}
-                {activeTab === "financeiro" && (
-                    <section className="space-y-8 p-4 sm:p-6 xl:p-10">
-                        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                            <div>
-                                <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-brand">
-                                    Gestão financeira
-                                </p>
-
-                                <h1 className="text-4xl font-extrabold tracking-tighter text-white">
-                                    Controle Financeiro
-                                </h1>
-
-                                <p className="mt-1 font-medium text-white/40">
-                                    Acompanhe lançamentos, receitas, despesas e
-                                    resultados.
-                                </p>
-                            </div>
-
-                            <div className="flex flex-col gap-3 sm:flex-row">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        void handleExportFinancialPdf()
-                                    }
-                                    disabled={isExportingFinancialPdf}
-                                    className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-white/10 disabled:cursor-wait disabled:opacity-60"
-                                >
-                                    {isExportingFinancialPdf
-                                        ? "Exportando..."
-                                        : "Exportar PDF"}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        /*
-                                         * Abre a área financeira e apresenta o formulário
-                                         * responsável por salvar o lançamento no banco.
-                                         */
-                                        setActiveTab("financeiro");
-                                        setFinancialEntryError("");
-                                        setFinancialEntryMessage("");
-                                        setIsFinancialEntryModalOpen(true);
-                                    }}
-                                    className="px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-light transition-colors shadow-lg shadow-brand/40"
-                                >
-                                    Novo Lançamento
-                                </button>
-                            </div>
-                        </div>
-
-                        {financialEntryMessage && (
-                            <div
-                                role="status"
-                                className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-400"
-                            >
-                                {financialEntryMessage}
-                            </div>
-                        )}
-                        {financialDataError && (
-                            <div
-                                role="alert"
-                                className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-400"
-                            >
-                                {financialDataError}
-                            </div>
-                        )}
-
-                        {isLoadingFinancialEntries && (
-                            <div
-                                role="status"
-                                className="rounded-2xl border border-brand/20 bg-brand/10 p-4 text-sm font-medium text-brand-light"
-                            >
-                                Carregando lançamentos financeiros...
-                            </div>
-                        )}
-                        {financialExportError && (
-                            <div
-                                role="alert"
-                                className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-400"
-                            >
-                                {financialExportError}
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">
-                                    Resumo financeiro
-                                </h2>
-
-                                <p className="mt-1 text-sm text-white/40">
-                                    Valores calculados a partir dos lançamentos
-                                    cadastrados.
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                                <article className="rounded-[28px] border border-emerald-500/20 bg-emerald-500/10 p-6 backdrop-blur-xl">
-                                    <div className="mb-5 flex items-center justify-between">
-                                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-400">
-                                            Receitas
-                                        </p>
-
-                                        <TrendingUp className="h-5 w-5 text-emerald-400" />
-                                    </div>
-
-                                    <p
-                                        className={cn(
-                                            "whitespace-nowrap font-extrabold tracking-tight text-emerald-400 tabular-nums",
-                                            getFinancialValueTextSize(
-                                                financialSummary.revenue,
-                                            ),
-                                        )}
-                                    >
-                                        {formatCurrencyValue(
-                                            financialSummary.revenue,
-                                        )}
-                                    </p>
-                                </article>
-
-                                <article className="rounded-[28px] border border-red-500/20 bg-red-500/10 p-6 backdrop-blur-xl">
-                                    <div className="mb-5 flex items-center justify-between">
-                                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">
-                                            Despesas
-                                        </p>
-
-                                        <WalletCards className="h-5 w-5 text-red-400" />
-                                    </div>
-
-                                    <p
-                                        className={cn(
-                                            "whitespace-nowrap font-extrabold tracking-tight text-red-400 tabular-nums",
-                                            getFinancialValueTextSize(
-                                                financialSummary.expenses,
-                                            ),
-                                        )}
-                                    >
-                                        {formatCurrencyValue(
-                                            financialSummary.expenses,
-                                        )}
-                                    </p>
-                                </article>
-
-                                <article className="rounded-[28px] border border-brand/30 bg-brand/10 p-6 backdrop-blur-xl">
-                                    <div className="mb-5 flex items-center justify-between">
-                                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-brand">
-                                            Saldo
-                                        </p>
-
-                                        <WalletCards className="h-5 w-5 text-brand" />
-                                    </div>
-
-                                    <p
-                                        className={cn(
-                                            "whitespace-nowrap font-extrabold tracking-tight tabular-nums",
-                                            getFinancialValueTextSize(
-                                                financialBalance,
-                                            ),
-                                            financialBalance >= 0
-                                                ? "text-emerald-400"
-                                                : "text-red-400",
-                                        )}
-                                    >
-                                        {formatCurrencyValue(financialBalance)}
-                                    </p>
-                                </article>
-
-                                <article className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-                                    <div className="mb-5 flex items-center justify-between">
-                                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/50">
-                                            Lançamentos
-                                        </p>
-
-                                        <FileText className="h-5 w-5 text-brand" />
-                                    </div>
-
-                                    <p className="text-2xl font-extrabold text-white">
-                                        {financialEntries.length}
-                                    </p>
-                                </article>
-                            </div>
-
-                            <p className="text-xs text-white/30">
-                                Transferências e ajustes financeiros não alteram
-                                o saldo nesta etapa.
-                            </p>
-                        </div>
-                        <section className="rounded-[32px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-8">
-                            <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">
-                                        Fluxo financeiro
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-white/40">
-                                        Comparação entre receitas e despesas no
-                                        período selecionado.
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                    <select
-                                        value={financialChartPeriod}
-                                        onChange={(event) =>
-                                            setFinancialChartPeriod(
-                                                Number(
-                                                    event.target.value,
-                                                ) as FinancialChartPeriod,
-                                            )
-                                        }
-                                        aria-label="Selecionar período do gráfico"
-                                        className="cursor-pointer rounded-xl border border-white/10 bg-[#1e2c42] px-4 py-2.5 text-sm font-bold text-white outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
-                                    >
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={1}
-                                        >
-                                            1 dia
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={7}
-                                        >
-                                            1 semana
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={15}
-                                        >
-                                            15 dias
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={30}
-                                        >
-                                            1 mês
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={90}
-                                        >
-                                            3 meses
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={180}
-                                        >
-                                            6 meses
-                                        </option>
-
-                                        <option
-                                            className="bg-[#0f1f35]"
-                                            value={365}
-                                        >
-                                            12 meses
-                                        </option>
-                                    </select>
-
-                                    <div className="flex flex-wrap gap-4 text-xs font-bold">
-                                        <div className="flex items-center gap-2 text-emerald-400">
-                                            <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                                            Receitas
-                                        </div>
-
-                                        <div className="flex items-center gap-2 text-red-400">
-                                            <span className="h-3 w-3 rounded-full bg-red-400" />
-                                            Despesas
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {financialChartData.length === 0 ? (
-                                <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 text-center">
-                                    <BarChart className="h-9 w-9 text-white/20" />
-
-                                    <p className="mt-3 text-sm font-medium text-white/40">
-                                        Cadastre receitas ou despesas para
-                                        visualizar o gráfico.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="h-80 w-full min-w-0 overflow-hidden">
-                                    {" "}
-                                    <ResponsiveContainer
-                                        width="100%"
-                                        height="100%"
-                                        initialDimension={{
-                                            width: 1,
-                                            height: 320,
-                                        }}
-                                    >
-                                        <BarChart
-                                            data={financialChartData}
-                                            margin={{
-                                                top: 10,
-                                                right: 10,
-                                                left: 0,
-                                                bottom: 0,
-                                            }}
-                                        >
-                                            <CartesianGrid
-                                                strokeDasharray="4 4"
-                                                vertical={false}
-                                                stroke="rgba(148, 163, 184, 0.15)"
-                                            />
-
-                                            <XAxis
-                                                dataKey="label"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{
-                                                    fill: "#94a3b8",
-                                                    fontSize: 12,
-                                                    fontWeight: 600,
-                                                }}
-                                            />
-
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                width={70}
-                                                tick={{
-                                                    fill: "#94a3b8",
-                                                    fontSize: 11,
-                                                    fontWeight: 600,
-                                                }}
-                                                tickFormatter={(value) =>
-                                                    new Intl.NumberFormat(
-                                                        "pt-BR",
-                                                        {
-                                                            notation: "compact",
-                                                            maximumFractionDigits: 1,
-                                                        },
-                                                    ).format(Number(value))
-                                                }
-                                            />
-
-                                            <Tooltip
-                                                cursor={{
-                                                    fill: "rgba(148, 163, 184, 0.08)",
-                                                }}
-                                                formatter={(value) =>
-                                                    formatCurrencyValue(
-                                                        Number(value),
-                                                    )
-                                                }
-                                                labelFormatter={(label) =>
-                                                    `Data: ${label}`
-                                                }
-                                                contentStyle={{
-                                                    backgroundColor: "#0f1f35",
-                                                    border: "1px solid rgba(148, 163, 184, 0.25)",
-                                                    borderRadius: "16px",
-                                                    color: "#ffffff",
-                                                    boxShadow:
-                                                        "0 20px 40px rgba(0, 0, 0, 0.35)",
-                                                }}
-                                                labelStyle={{
-                                                    color: "#ffffff",
-                                                    fontWeight: 700,
-                                                }}
-                                                itemStyle={{
-                                                    color: "#f8fafc",
-                                                    fontWeight: 600,
-                                                }}
-                                            />
-
-                                            <Bar
-                                                dataKey="receitas"
-                                                name="Receitas"
-                                                fill="#10b981"
-                                                maxBarSize={48}
-                                                shape={
-                                                    <FinancialBarShape fillColor="#10b981" />
-                                                }
-                                            />
-
-                                            <Bar
-                                                dataKey="despesas"
-                                                name="Despesas"
-                                                fill="#f43f5e"
-                                                maxBarSize={48}
-                                                shape={
-                                                    <FinancialBarShape fillColor="#f43f5e" />
-                                                }
-                                            />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-                        </section>
-                        <section className="rounded-[32px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-8">
-                            <div className="mb-6">
-                                <h2 className="text-xl font-bold text-white">
-                                    Movimentações recentes
-                                </h2>
-
-                                <p className="mt-1 text-sm text-white/40">
-                                    Consulte os lançamentos cadastrados e seus
-                                    documentos.
-                                </p>
-                            </div>
-
-                            {financialEntries.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">
-                                    <FileText className="mx-auto h-8 w-8 text-white/20" />
-
-                                    <p className="mt-3 text-sm font-medium text-white/40">
-                                        Nenhuma movimentação cadastrada.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {financialEntries.map((entry) => {
-                                        const isRevenue =
-                                            entry.type === "receita";
-                                        const isExpense =
-                                            entry.type === "despesa";
-
-                                        return (
-                                            <article
-                                                key={entry.id}
-                                                className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-5 transition-colors hover:bg-white/10 lg:flex-row lg:items-center"
-                                            >
-                                                <div
-                                                    className={cn(
-                                                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
-                                                        isRevenue
-                                                            ? "bg-emerald-500/10 text-emerald-400"
-                                                            : isExpense
-                                                              ? "bg-red-500/10 text-red-400"
-                                                              : "bg-brand/10 text-brand",
-                                                    )}
-                                                >
-                                                    <WalletCards className="h-6 w-6" />
-                                                </div>
-
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <h3 className="font-bold text-white">
-                                                            {entry.description}
-                                                        </h3>
-
-                                                        <span
-                                                            className={cn(
-                                                                "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                                                isRevenue
-                                                                    ? "bg-emerald-500/10 text-emerald-400"
-                                                                    : isExpense
-                                                                      ? "bg-red-500/10 text-red-400"
-                                                                      : "bg-brand/10 text-brand",
-                                                            )}
-                                                        >
-                                                            {
-                                                                financialTypeLabels[
-                                                                    entry.type
-                                                                ]
-                                                            }
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/40">
-                                                        <span>
-                                                            {financialCategoryLabels[
-                                                                entry.category
-                                                            ] ?? entry.category}
-                                                        </span>
-
-                                                        <span>
-                                                            {formatFinancialDate(
-                                                                entry.date,
-                                                            )}
-                                                        </span>
-
-                                                        {entry.attachment && (
-                                                            <span className="max-w-52 truncate text-brand">
-                                                                {
-                                                                    entry
-                                                                        .attachment
-                                                                        .name
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <p
-                                                    className={cn(
-                                                        "shrink-0 text-lg font-extrabold",
-                                                        isRevenue
-                                                            ? "text-emerald-400"
-                                                            : isExpense
-                                                              ? "text-red-400"
-                                                              : "text-brand",
-                                                    )}
-                                                >
-                                                    {isRevenue
-                                                        ? "+"
-                                                        : isExpense
-                                                          ? "-"
-                                                          : ""}
-                                                    {formatCurrencyValue(
-                                                        entry.amount,
-                                                    )}
-                                                </p>
-
-                                                <div className="flex shrink-0 gap-2">
-                                                    {entry.attachment && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleOpenFinancialAttachment(
-                                                                    entry.attachment!,
-                                                                )
-                                                            }
-                                                            title="Abrir anexo"
-                                                            aria-label={`Abrir anexo de ${entry.description}`}
-                                                            className="rounded-xl border border-brand/20 bg-brand/10 p-2.5 text-brand transition-colors hover:bg-brand/20"
-                                                        >
-                                                            <ExternalLink className="h-5 w-5" />
-                                                        </button>
-                                                    )}
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleDeleteFinancialEntry(
-                                                                entry,
-                                                            )
-                                                        }
-                                                        title="Excluir lançamento"
-                                                        aria-label={`Excluir ${entry.description}`}
-                                                        className="rounded-xl border border-red-500/20 bg-red-500/10 p-2.5 text-red-400 transition-colors hover:bg-red-500/20"
-                                                    >
-                                                        <Trash2 className="h-5 w-5" />
-                                                    </button>
-                                                </div>
-                                            </article>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </section>
-                        {isFinancialEntryModalOpen && (
-                            <div
-                                className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
-                                onMouseDown={() =>
-                                    setIsFinancialEntryModalOpen(false)
-                                }
-                            >
-                                <div
-                                    role="dialog"
-                                    aria-modal="true"
-                                    aria-labelledby="financial-entry-title"
-                                    className="w-full max-w-2xl rounded-[32px] border border-white/10 bg-slate-900 p-6 shadow-2xl sm:p-8"
-                                    onMouseDown={(event) =>
-                                        event.stopPropagation()
-                                    }
-                                >
-                                    <div className="mb-6 flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
-                                                Controle financeiro
-                                            </p>
-
-                                            <h2
-                                                id="financial-entry-title"
-                                                className="mt-1 text-2xl font-extrabold text-white"
-                                            >
-                                                Novo lançamento
-                                            </h2>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setIsFinancialEntryModalOpen(
-                                                    false,
-                                                )
-                                            }
-                                            aria-label="Fechar formulário"
-                                            className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
-                                        >
-                                            <X className="h-5 w-5" />
-                                        </button>
-                                    </div>
-
-                                    <form
-                                        onSubmit={handleFinancialEntrySubmit}
-                                        className="space-y-5"
-                                    >
-                                        <div className="grid gap-5 sm:grid-cols-2">
-                                            <label className="space-y-2">
-                                                <span className="text-sm font-bold text-white">
-                                                    Tipo
-                                                </span>
-
-                                                <select
-                                                    value={
-                                                        financialEntryForm.type
-                                                    }
-                                                    onChange={(event) =>
-                                                        setFinancialEntryForm(
-                                                            (currentForm) => ({
-                                                                ...currentForm,
-                                                                type: event
-                                                                    .target
-                                                                    .value as FinancialEntryType,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="w-full cursor-pointer rounded-2xl border border-white/10 bg-[#1e2c42] px-4 py-3 text-white outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
-                                                >
-                                                    <option
-                                                        className="bg-[#0f1f35] text-white"
-                                                        value="receita"
-                                                    >
-                                                        Receita
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-[#0f1f35] text-white"
-                                                        value="despesa"
-                                                    >
-                                                        Despesa
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-[#0f1f35] text-white"
-                                                        value="transferencia"
-                                                    >
-                                                        Transferência
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-[#0f1f35] text-white"
-                                                        value="ajuste"
-                                                    >
-                                                        Ajuste financeiro
-                                                    </option>
-                                                </select>
-                                            </label>
-
-                                            <label className="space-y-2">
-                                                <span className="text-sm font-bold text-white">
-                                                    Categoria
-                                                </span>
-
-                                                <select
-                                                    value={
-                                                        financialEntryForm.category
-                                                    }
-                                                    onChange={(event) =>
-                                                        setFinancialEntryForm(
-                                                            (currentForm) => ({
-                                                                ...currentForm,
-                                                                category:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="w-full cursor-pointer rounded-2xl border border-white/10 bg-[#1e2c42] px-4 py-3 text-white outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
-                                                >
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value=""
-                                                    >
-                                                        Selecione uma categoria
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="servicos"
-                                                    >
-                                                        Serviços
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="honorarios"
-                                                    >
-                                                        Honorários
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="impostos"
-                                                    >
-                                                        Impostos
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="folha"
-                                                    >
-                                                        Folha de pagamento
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="fornecedores"
-                                                    >
-                                                        Fornecedores
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="equipamentos"
-                                                    >
-                                                        Equipamentos
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="reembolso"
-                                                    >
-                                                        Reembolso
-                                                    </option>
-
-                                                    <option
-                                                        className="bg-slate-900 text-white"
-                                                        value="outros"
-                                                    >
-                                                        Outros
-                                                    </option>
-                                                </select>
-                                            </label>
-                                        </div>
-
-                                        <label className="block space-y-2">
-                                            <span className="text-sm font-bold text-white">
-                                                Descrição
-                                            </span>
-
-                                            <input
-                                                type="text"
-                                                value={
-                                                    financialEntryForm.description
-                                                }
-                                                onChange={(event) =>
-                                                    setFinancialEntryForm(
-                                                        (currentForm) => ({
-                                                            ...currentForm,
-                                                            description:
-                                                                event.target
-                                                                    .value,
-                                                        }),
-                                                    )
-                                                }
-                                                placeholder="Descreva o lançamento"
-                                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-brand"
-                                            />
-                                        </label>
-
-                                        <div className="grid gap-5 sm:grid-cols-2">
-                                            <label className="space-y-2">
-                                                <span className="text-sm font-bold text-white">
-                                                    Valor
-                                                </span>
-
-                                                <input
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    value={
-                                                        financialEntryForm.amount
-                                                    }
-                                                    onChange={(event) =>
-                                                        setFinancialEntryForm(
-                                                            (currentForm) => ({
-                                                                ...currentForm,
-                                                                amount: formatCurrencyInput(
-                                                                    event.target
-                                                                        .value,
-                                                                ),
-                                                            }),
-                                                        )
-                                                    }
-                                                    placeholder="R$ 0,00"
-                                                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/30 focus:border-brand"
-                                                />
-                                            </label>
-
-                                            <label className="space-y-2">
-                                                <span className="text-sm font-bold text-white">
-                                                    Data
-                                                </span>
-
-                                                <input
-                                                    type="date"
-                                                    value={
-                                                        financialEntryForm.date
-                                                    }
-                                                    onChange={(event) =>
-                                                        setFinancialEntryForm(
-                                                            (currentForm) => ({
-                                                                ...currentForm,
-                                                                date: event
-                                                                    .target
-                                                                    .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors focus:border-brand"
-                                                />
-                                            </label>
-                                        </div>
-                                        <label className="block space-y-2">
-                                            <span className="text-sm font-bold text-white">
-                                                Comprovante ou documento
-                                            </span>
-
-                                            <div className="flex items-center gap-4 rounded-2xl border border-dashed border-white/20 bg-white/5 p-4 transition-colors hover:border-brand/60">
-                                                <FileText className="h-6 w-6 shrink-0 text-brand" />
-
-                                                <input
-                                                    type="file"
-                                                    accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
-                                                    onChange={(event) => {
-                                                        const selectedFile =
-                                                            event.target
-                                                                .files?.[0] ??
-                                                            null;
-
-                                                        if (!selectedFile) {
-                                                            setFinancialEntryAttachment(
-                                                                null,
-                                                            );
-                                                            return;
-                                                        }
-
-                                                        const allowedTypes = [
-                                                            "application/pdf",
-                                                            "image/png",
-                                                            "image/jpeg",
-                                                        ];
-
-                                                        const maximumSize =
-                                                            10 * 1024 * 1024;
-
-                                                        if (
-                                                            !allowedTypes.includes(
-                                                                selectedFile.type,
-                                                            )
-                                                        ) {
-                                                            setFinancialEntryAttachment(
-                                                                null,
-                                                            );
-                                                            setFinancialEntryError(
-                                                                "Selecione um arquivo PDF, JPG ou PNG.",
-                                                            );
-                                                            event.target.value =
-                                                                "";
-                                                            return;
-                                                        }
-
-                                                        if (
-                                                            selectedFile.size >
-                                                            maximumSize
-                                                        ) {
-                                                            setFinancialEntryAttachment(
-                                                                null,
-                                                            );
-                                                            setFinancialEntryError(
-                                                                "O arquivo deve possuir no máximo 10 MB.",
-                                                            );
-                                                            event.target.value =
-                                                                "";
-                                                            return;
-                                                        }
-
-                                                        setFinancialEntryAttachment(
-                                                            selectedFile,
-                                                        );
-                                                        setFinancialEntryError(
-                                                            "",
-                                                        );
-                                                    }}
-                                                    className="block w-full text-sm text-white/60 file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-brand file:px-4 file:py-2 file:font-bold file:text-white file:transition-colors hover:file:bg-brand-light"
-                                                />
-                                            </div>
-
-                                            <p className="text-xs text-white/40">
-                                                Campo opcional. Aceita PDF, JPG
-                                                ou PNG de até 10 MB.
-                                            </p>
-
-                                            {financialEntryAttachment && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-400">
-                                                    <CheckCircle2 className="h-5 w-5 shrink-0" />
-
-                                                    <span className="min-w-0 truncate">
-                                                        {
-                                                            financialEntryAttachment.name
-                                                        }
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </label>
-                                        {financialEntryError && (
-                                            <div
-                                                role="alert"
-                                                className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-400"
-                                            >
-                                                {financialEntryError}
-                                            </div>
-                                        )}
-
-                                        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setIsFinancialEntryModalOpen(
-                                                        false,
-                                                    )
-                                                }
-                                                className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10"
-                                            >
-                                                Cancelar
-                                            </button>
-
-                                            <button
-                                                type="submit"
-                                                disabled={
-                                                    isSavingFinancialEntry
-                                                }
-                                                className="rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-light disabled:cursor-wait disabled:opacity-60"
-                                            >
-                                                {isSavingFinancialEntry
-                                                    ? "Salvando..."
-                                                    : "Salvar lançamento"}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        )}
-                    </section>
-                )}
+               {activeTab === "financeiro" && (
+    <>
+        <FinanceiroCliente
+            lancamentos={financialEntries}
+            resumo={financialSummary}
+            saldo={financialBalance}
+            dadosGrafico={financialChartData}
+            periodoGrafico={financialChartPeriod}
+            carregando={isLoadingFinancialEntries}
+            exportandoPdf={isExportingFinancialPdf}
+            mensagem={financialEntryMessage}
+            erroDados={financialDataError}
+            erroExportacao={financialExportError}
+            onNovoLancamento={() => {
+                setFinancialEntryError("");
+                setFinancialEntryMessage("");
+                setIsFinancialEntryModalOpen(true);
+            }}
+            onExportarPdf={handleExportFinancialPdf}
+            onAlterarPeriodo={setFinancialChartPeriod}
+            onAbrirAnexo={handleOpenFinancialAttachment}
+            onExcluirLancamento={handleDeleteFinancialEntry}
+        />
+
+        <NovoLancamentoModal
+            aberto={isFinancialEntryModalOpen}
+            formulario={financialEntryForm}
+            setFormulario={setFinancialEntryForm}
+            erro={financialEntryError}
+            setErro={setFinancialEntryError}
+            salvando={isSavingFinancialEntry}
+            anexo={financialEntryAttachment}
+            setAnexo={setFinancialEntryAttachment}
+            onFechar={() =>
+                setIsFinancialEntryModalOpen(false)
+            }
+            onSubmit={handleFinancialEntrySubmit}
+        />
+    </>
+)}
                 {activeTab === "inicio" && (
                     <div className="p-4 sm:p-6 xl:p-10 space-y-8 xl:space-y-10">
                         <div
@@ -4236,61 +2410,6 @@ function StatCard({
                 {trend}
             </p>
         </div>
-    );
-}
-
-function SidebarItem({
-    active,
-    onClick,
-    icon,
-    label,
-    collapsed,
-    danger = false,
-}: {
-    active: boolean;
-    onClick: () => void;
-    icon: ReactNode;
-    label: string;
-    collapsed: boolean;
-    danger?: boolean;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            /*
-             * O título permite identificar a funcionalidade quando
-             * o menu está compacto e apresenta somente os ícones.
-             */
-            title={collapsed ? label : undefined}
-            aria-label={label}
-            className={cn(
-                "group wc-sidebar-item flex items-center rounded-3xl transition-all w-full",
-                collapsed ? "justify-center p-2" : "gap-3 px-4 py-2 text-left",
-                active
-                    ? "bg-brand text-white border border-brand/50 shadow-2xl shadow-brand/40"
-                    : danger
-                      ? "wc-sidebar-item-danger"
-                      : "wc-sidebar-item-default",
-            )}
-        >
-            <div
-                className="
-        wc-sidebar-item-icon
-        w-10 h-10 shrink-0 rounded-3xl
-        bg-white/5 flex items-center justify-center
-        transition-colors
-    "
-            >
-                {icon}
-            </div>
-
-            {!collapsed && (
-                <span className="text-sm font-bold whitespace-nowrap">
-                    {label}
-                </span>
-            )}
-        </button>
     );
 }
 
