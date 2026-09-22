@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\LancamentoFinanceiroController;
+use App\Http\Controllers\PreferenciaUsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -72,6 +73,33 @@ Route::prefix('auth')->group(function () {
             [AutenticacaoController::class, 'logout']
         );
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Preferências do usuário
+|--------------------------------------------------------------------------
+|
+| Permite consultar e atualizar as preferências do usuário autenticado.
+|
+*/
+
+Route::middleware('auth')->group(function () {
+    /*
+     * Retorna as preferências salvas do usuário autenticado.
+     */
+    Route::get(
+        '/preferencias',
+        [PreferenciaUsuarioController::class, 'show']
+    );
+
+    /*
+     * Atualiza tema e preferências de notificações.
+     */
+    Route::put(
+        '/preferencias',
+        [PreferenciaUsuarioController::class, 'update']
+    );
 });
 
 /*
