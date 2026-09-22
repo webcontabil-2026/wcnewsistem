@@ -21,9 +21,25 @@ Route::view('/planos', 'planos');
 Route::view('/contato', 'contato');
 Route::view('/politica-de-privacidade', 'privacidade');
 Route::view('/termos-de-uso', 'termos');
-Route::view('/login', 'login');
-Route::view('/register', 'register');
-Route::view('/dashboard', 'dashboard');
+/*
+ * Páginas de autenticação.
+ *
+ * O nome "login" é utilizado pelo middleware de autenticação para
+ * redirecionar usuários que tentarem acessar uma área protegida.
+ */
+Route::view('/login', 'login')
+    ->name('login');
+
+Route::view('/register', 'register')
+    ->name('register');
+
+/*
+ * O dashboard somente pode ser carregado por usuários que possuam
+ * uma sessão autenticada no Laravel.
+ */
+Route::view('/dashboard', 'dashboard')
+    ->middleware('auth')
+    ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
