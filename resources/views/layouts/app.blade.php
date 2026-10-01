@@ -6,6 +6,12 @@
         {{-- Token utilizado nas requisições seguras feitas pelo React. --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>@yield('title', config('app.name', 'WebContabil'))</title>
+        {{-- Identidade visual exibida na aba do navegador. --}}
+<link
+    rel="icon"
+    type="image/svg+xml"
+    href="/images/logo.svg"
+>
 
         @include('partials.theme')
 

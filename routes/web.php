@@ -4,6 +4,8 @@ use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\LancamentoFinanceiroController;
 use App\Http\Controllers\PreferenciaUsuarioController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ServicoController;
+use App\Http\Controllers\SolicitacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -170,4 +172,51 @@ Route::middleware('auth')
             '/{financialEntry}',
             [LancamentoFinanceiroController::class, 'destroy']
         )->whereNumber('financialEntry');
+    });
+/*
+|--------------------------------------------------------------------------
+| Catálogo de serviços e solicitações
+|--------------------------------------------------------------------------
+|
+| Rotas autenticadas responsáveis pelo catálogo e pelo fluxo entre
+| clientes e contadores.
+|
+*/
+
+Route::middleware('auth')
+    ->prefix('api')
+    ->group(function () {
+        /*
+         * Retorna o catálogo de serviços disponíveis.
+         */
+        Route::get(
+            '/servicos',
+            [ServicoController::class, 'listar'],
+        );
+
+        /*
+         * Lista as solicitações permitidas para o usuário autenticado.
+         */
+        Route::get(
+            '/solicitacoes',
+            [SolicitacaoController::class, 'listar'],
+        );
+
+        /*
+         * Cria uma solicitação para o cliente autenticado.
+         */
+        Route::post(
+            '/solicitacoes',
+            [SolicitacaoController::class, 'criar'],
+        )->middleware('throttle:10,1');
+
+        /*
+         * Permite que o contador envie ou atualize um orçamento.
+         */
+        Route::patch(
+            '/solicitacoes/{solicitacao}/orcamento',
+            [SolicitacaoController::class, 'enviarOrcamento'],
+        )
+            ->whereNumber('solicitacao')
+            ->middleware('throttle:10,1');
     });

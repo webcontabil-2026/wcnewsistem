@@ -37,11 +37,14 @@ class Cliente extends Model
     }
 
     /**
-     * Retorna o usuário responsável por este cadastro de cliente.
+     * Retorna o usuário responsável pelo cadastro do cliente.
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(
+            User::class,
+            'user_id',
+        );
     }
 
     /**
@@ -51,7 +54,7 @@ class Cliente extends Model
     {
         return $this->hasMany(
             LancamentoFinanceiro::class,
-            'cliente_id'
+            'cliente_id',
         );
     }
 
@@ -62,17 +65,29 @@ class Cliente extends Model
     {
         return $this->hasMany(
             Documento::class,
-            'cliente_id'
+            'cliente_id',
         );
     }
+
     /**
- * Retorna as empresas pertencentes ao cliente.
- */
-public function empresas(): HasMany
-{
-    return $this->hasMany(
-        Empresa::class,
-        'cliente_id'
-    );
-}
+     * Retorna as empresas pertencentes ao cliente.
+     */
+    public function empresas(): HasMany
+    {
+        return $this->hasMany(
+            Empresa::class,
+            'cliente_id',
+        );
+    }
+
+    /**
+     * Retorna as solicitações enviadas pelo cliente.
+     */
+    public function solicitacoes(): HasMany
+    {
+        return $this->hasMany(
+            Solicitacao::class,
+            'cliente_id',
+        );
+    }
 }

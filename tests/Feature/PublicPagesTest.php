@@ -2,18 +2,37 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ExampleTest extends TestCase
+class PublicPagesTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Confirma que as páginas públicas principais estão acessíveis.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_public_pages_are_available(): void
     {
-        $response = $this->get('/');
+        $publicPages = [
+            '/',
+            '/sobre',
+            '/servicos',
+            '/planos',
+            '/contato',
+            '/politica-de-privacidade',
+            '/termos-de-uso',
+            '/login',
+            '/register',
+        ];
 
-        $response->assertStatus(200);
+        foreach ($publicPages as $page) {
+            $this->get($page)->assertOk();
+        }
+    }
+
+    /**
+     * Impede o acesso ao painel quando não existe sessão autenticada.
+     */
+    public function test_dashboard_requires_authentication(): void
+    {
+        $this->get('/dashboard')->assertRedirect('/login');
     }
 }

@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contador extends Model
 {
@@ -27,23 +28,35 @@ class Contador extends Model
     ];
 
     /**
-     * Retorna o usuário responsável por este cadastro de contador.
+     * Retorna o usuário responsável pelo cadastro do contador.
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(
             User::class,
-            'user_id'
+            'user_id',
         );
     }
-        /**
+
+    /**
      * Retorna os vínculos do contador com empresas.
      */
     public function vinculosComEmpresas(): HasMany
     {
         return $this->hasMany(
             EmpresaContador::class,
-            'contador_id'
+            'contador_id',
+        );
+    }
+
+    /**
+     * Retorna as solicitações atribuídas ao contador.
+     */
+    public function solicitacoes(): HasMany
+    {
+        return $this->hasMany(
+            Solicitacao::class,
+            'contador_id',
         );
     }
 }
