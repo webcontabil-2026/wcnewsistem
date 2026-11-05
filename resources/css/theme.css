@@ -29,47 +29,71 @@
     --color-blue-900: rgb(30, 58, 138);
     --color-blue-950: rgb(23, 37, 84);
 
-    /* Cores semânticas do tema claro, com contraste alto para leitura. */
-    --theme-background: rgb(248, 250, 252);
-    --theme-surface: rgb(255, 255, 255);
-    --theme-surface-muted: rgb(239, 246, 255);
-    --theme-header: rgb(255, 255, 255);
-    --theme-text-primary: rgb(15, 23, 42);
-    --theme-text-secondary: rgb(51, 65, 85);
-    --theme-text-muted: rgb(71, 85, 105);
-    --theme-border: rgb(203, 213, 225);
-    --theme-highlight: var(--color-blue-700);
-    --theme-highlight-hover: var(--color-blue-800);
+    /*
+     * Tema claro em camadas azul-acinzentadas.
+     * Nenhuma superfície principal utiliza branco puro.
+     */
+    --theme-background: #dce6ee;
+    --theme-shell: #cedbe6;
+    --theme-header: #d5e1eb;
+    --theme-surface: #f1f5f8;
+    --theme-surface-raised: #e8f0f5;
+    --theme-surface-muted: #e1eaf1;
+    --theme-control: #f5f8fa;
+    --theme-hover: #d5e4ef;
+    --theme-text-primary: #09243a;
+    --theme-text-secondary: #294a64;
+    --theme-text-muted: #496276;
+    --theme-border: #a9bfd0;
+
+    /* Azul aprovado para as ações principais da marca. */
+    --theme-highlight: #006091;
+    --theme-highlight-hover: #004f78;
     --theme-on-highlight: rgb(255, 255, 255);
-    --theme-success: rgb(21, 128, 61);
-    --theme-warning: rgb(180, 83, 9);
-    --theme-danger: rgb(185, 28, 28);
-    --theme-overlay: rgb(15 23 42 / 0.08);
-    --theme-logo-tile: var(--color-blue-700);
+    --theme-focus: #1681b5;
+    --theme-success: #147453;
+    --theme-success-surface: #d8ebe4;
+    --theme-warning: #8a4b00;
+    --theme-warning-surface: #e8e2d2;
+    --theme-danger: #a63b46;
+    --theme-danger-surface: #f0dde0;
+    --theme-overlay: rgb(9 36 58 / 0.12);
+    --theme-logo-tile: #006091;
     --theme-logo-mark: rgb(255, 255, 255);
 }
 
 :root[data-theme="dark"] {
     color-scheme: dark;
 
-    /* Cores semânticas do tema escuro, baseadas na mesma escala azul. */
-    --theme-background: rgb(15, 23, 42);
-    --theme-surface: rgb(23, 37, 84);
-    --theme-surface-muted: rgb(30, 58, 138);
-    --theme-header: rgb(15, 23, 42);
-    --theme-text-primary: rgb(248, 250, 252);
-    --theme-text-secondary: rgb(219, 234, 254);
-    --theme-text-muted: rgb(191, 219, 254);
-    --theme-border: rgb(51, 65, 85);
-    --theme-highlight: var(--color-blue-400);
-    --theme-highlight-hover: var(--color-blue-300);
-    --theme-on-highlight: rgb(15, 23, 42);
-    --theme-success: rgb(74, 222, 128);
-    --theme-warning: rgb(251, 191, 36);
-    --theme-danger: rgb(248, 113, 113);
-    --theme-overlay: rgb(255 255 255 / 0.08);
-    --theme-logo-tile: var(--color-blue-200);
-    --theme-logo-mark: var(--theme-background);
+    /*
+     * Tema escuro com superfícies azul-petróleo mais claras que o fundo.
+     * A diferença entre as camadas evita que cards e campos desapareçam.
+     */
+    --theme-background: #071522;
+    --theme-shell: #102a3c;
+    --theme-header: #112b3d;
+    --theme-surface: #17364b;
+    --theme-surface-raised: #1c3d53;
+    --theme-surface-muted: #21465e;
+    --theme-control: #294b60;
+    --theme-hover: #28536d;
+    --theme-text-primary: #f2f7fa;
+    --theme-text-secondary: #c4d2dc;
+    --theme-text-muted: #91a8b8;
+    --theme-border: #41647a;
+    --theme-highlight: #1677a6;
+    --theme-highlight-hover: #227aa5;
+    --theme-on-highlight: #ffffff;
+    --theme-focus: #63b5dc;
+    --theme-success: #55c5a0;
+    --theme-success-surface: #173e38;
+    --theme-warning: #efb45e;
+    --theme-warning-surface: #393323;
+    --theme-danger: #ef8992;
+    --theme-danger-surface: #452b34;
+    --theme-overlay: rgb(0 0 0 / 0.28);
+    --theme-logo-tile: #7bb7d8;
+    --theme-logo-mark: #071522;
 }
 
 html,
@@ -206,10 +230,11 @@ video {
     color: var(--theme-text-primary);
 }
 
-.system-layout aside,
-.system-layout header,
+.system-layout > aside,
+.system-layout > main > header,
+.system-layout > header,
 .system-layout .system-panel {
-    background-color: var(--theme-surface) !important;
+    background-color: var(--theme-shell) !important;
     border-color: var(--theme-border) !important;
 }
 
@@ -347,14 +372,14 @@ video {
     background-color: var(--theme-highlight);
     border: 1px solid var(--theme-highlight);
     color: var(--theme-on-highlight);
-    box-shadow: 0 14px 30px rgb(37 99 235 / 0.2);
+    box-shadow: none;
 }
 
 .wc-button-primary:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: var(--theme-highlight-hover);
     border-color: var(--theme-highlight-hover);
-    box-shadow: 0 18px 36px rgb(37 99 235 / 0.3);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: translateY(-1px);
 }
 
 /*
@@ -365,15 +390,15 @@ video {
     background-color: var(--theme-surface);
     border: 1px solid var(--theme-border);
     color: var(--theme-text-primary);
-    box-shadow: 0 8px 20px var(--theme-overlay);
+    box-shadow: none;
 }
 
 .wc-button-secondary:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: var(--theme-surface-muted);
     border-color: var(--theme-highlight);
     color: var(--theme-highlight);
-    box-shadow: 0 14px 28px var(--theme-overlay);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: translateY(-1px);
 }
 
 /*
@@ -445,8 +470,8 @@ video {
         var(--theme-highlight) 45%,
         var(--theme-border)
     ) !important;
-    box-shadow: 0 18px 38px var(--theme-overlay);
-    transform: translateY(-6px);
+    box-shadow: none;
+    transform: translateY(-2px);
 }
 
 /*
@@ -500,7 +525,7 @@ video {
     border: 1px solid var(--theme-border);
     border-radius: 1rem;
     background-color: var(--theme-surface);
-    box-shadow: 0 10px 24px var(--theme-overlay);
+    box-shadow: none;
 }
 
 /*
@@ -537,7 +562,7 @@ video {
     color: var(--theme-on-highlight);
     background-color: var(--theme-highlight);
     border-color: var(--theme-highlight);
-    box-shadow: 0 8px 18px rgb(37 99 235 / 0.25);
+    box-shadow: none;
 }
 
 .wc-plan-tab:focus-visible {
@@ -584,7 +609,7 @@ video {
     border: 1px solid var(--theme-border);
     border-radius: 1.5rem;
     background-color: var(--theme-surface);
-    box-shadow: 0 8px 22px var(--theme-overlay);
+    box-shadow: none;
     transition:
         border-color 200ms ease,
         box-shadow 200ms ease,
@@ -593,8 +618,8 @@ video {
 
 .wc-service-card:hover {
     border-color: var(--theme-highlight);
-    box-shadow: 0 18px 38px var(--theme-overlay);
-    transform: translateY(-0.3rem);
+    box-shadow: none;
+    transform: translateY(-0.125rem);
 }
 
 /*
@@ -693,7 +718,7 @@ video {
     border: 1px solid var(--theme-border);
     border-radius: 0.75rem;
     padding: 0.75rem 1rem;
-    background-color: transparent;
+    background-color: var(--theme-control);
     color: var(--theme-text-primary);
     caret-color: var(--theme-highlight);
     transition:
@@ -834,7 +859,7 @@ select.wc-form-field {
     color: var(--theme-on-highlight);
     background-color: var(--theme-highlight);
     border-color: var(--theme-highlight);
-    box-shadow: 0 6px 16px rgb(37 99 235 / 0.22);
+    box-shadow: none;
 }
 
 .wc-profile-option:focus-visible {
@@ -1209,4 +1234,375 @@ select.wc-form-field {
 
 .wc-financial-expense-bar .recharts-rectangle {
     fill: #f43f5e !important;
+}
+
+/*
+ * ========================================================================
+ * NORMALIZAÇÃO GLOBAL DAS ÁREAS AUTENTICADAS
+ * ========================================================================
+ * Os componentes antigos utilizam classes transparentes pensadas somente
+ * para um fundo escuro. As regras abaixo convertem essas classes em camadas
+ * sólidas da paleta global nos dois temas.
+ */
+.system-layout,
+.system-layout > main {
+    background-color: var(--theme-background) !important;
+    color: var(--theme-text-primary);
+}
+
+.system-layout > aside,
+.system-layout > header,
+.system-layout > main > header,
+.system-layout .fixed aside {
+    background-color: var(--theme-shell) !important;
+    border-color: var(--theme-border) !important;
+    backdrop-filter: none !important;
+}
+
+/* Superfícies sólidas: cards, painéis, botões secundários e controles. */
+.system-layout .bg-white\/2,
+.system-layout .bg-white\/5,
+.system-layout .bg-white\/\[0\.03\] {
+    background-color: var(--theme-surface) !important;
+    backdrop-filter: none !important;
+}
+
+.system-layout .bg-white\/10,
+.system-layout .bg-black\/10,
+.system-layout .bg-slate-900 {
+    background-color: var(--theme-surface-muted) !important;
+    backdrop-filter: none !important;
+}
+
+.system-layout .bg-white\/20,
+.system-layout .bg-slate-950\/40,
+.system-layout .bg-slate-950\/70 {
+    background-color: var(--theme-hover) !important;
+    backdrop-filter: none !important;
+}
+
+/* Uma superfície dentro de outra recebe uma camada diferente. */
+.system-layout .bg-white\/5 .bg-white\/5,
+.system-layout .bg-white\/5 .bg-white\/10,
+.system-layout .bg-white\/5 .bg-black\/10 {
+    background-color: var(--theme-surface-muted) !important;
+}
+
+.system-layout .hover\:bg-white\/5:hover,
+.system-layout .hover\:bg-white\/10:hover,
+.system-layout .hover\:bg-white\/\[0\.07\]:hover,
+.system-layout .group:hover .group-hover\:bg-white\/5 {
+    background-color: var(--theme-hover) !important;
+}
+
+/* Textos antigos passam a consumir papéis de cor legíveis. */
+.system-layout .text-white,
+.system-layout .text-slate-200 {
+    color: var(--theme-text-primary) !important;
+}
+
+.system-layout .text-white\/10,
+.system-layout .text-white\/20,
+.system-layout .text-white\/25,
+.system-layout .text-white\/30,
+.system-layout .text-white\/35,
+.system-layout .text-white\/40,
+.system-layout .text-white\/45,
+.system-layout .placeholder\:text-white\/20::placeholder,
+.system-layout .placeholder\:text-white\/30::placeholder {
+    color: var(--theme-text-muted) !important;
+    opacity: 1 !important;
+}
+
+.system-layout .text-white\/50,
+.system-layout .text-white\/55,
+.system-layout .text-white\/60,
+.system-layout .text-white\/70,
+.system-layout .text-white\/80 {
+    color: var(--theme-text-secondary) !important;
+}
+
+.system-layout .text-brand {
+    color: var(--theme-highlight) !important;
+}
+
+/* Bordas são visíveis sem se tornarem linhas pesadas. */
+.system-layout .border-white\/5,
+.system-layout .border-white\/10,
+.system-layout .border-white\/15,
+.system-layout .border-white\/20 {
+    border-color: var(--theme-border) !important;
+}
+
+/* A ação principal mantém o azul aprovado e não emite brilho parada. */
+.system-layout .bg-brand,
+.system-layout .theme-highlight {
+    background-color: var(--theme-highlight) !important;
+}
+
+.system-layout .hover\:bg-brand-light:hover {
+    background-color: var(--theme-highlight-hover) !important;
+}
+
+.system-layout .bg-brand.text-white,
+.system-layout .bg-brand .text-white,
+.system-layout .bg-success.text-white,
+.system-layout .bg-danger.text-white {
+    color: var(--theme-on-highlight) !important;
+}
+
+.system-layout .bg-brand .wc-sidebar-item-icon {
+    background-color: rgb(255 255 255 / 0.14) !important;
+    color: var(--theme-on-highlight) !important;
+}
+
+/* Remove apenas brilhos e sombras decorativas permanentes. */
+.system-layout .shadow-lg,
+.system-layout .shadow-xl,
+.system-layout .shadow-2xl,
+.system-layout [class*="shadow-brand"],
+.system-layout [class*="drop-shadow"] {
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+.system-layout [class*="bg-gradient-to"] {
+    background-image: none !important;
+    background-color: var(--theme-surface) !important;
+}
+
+/* Campos e seletores não podem se confundir com o card que os contém. */
+.system-layout input:not(.bg-transparent),
+.system-layout textarea,
+.system-layout select {
+    background-color: var(--theme-control) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+.system-layout select option {
+    background-color: var(--theme-control);
+    color: var(--theme-text-primary);
+}
+
+.system-layout input::placeholder,
+.system-layout textarea::placeholder {
+    color: var(--theme-text-muted) !important;
+    opacity: 1 !important;
+}
+
+.system-layout :where(button, a, input, textarea, select):focus-visible,
+.wc-auth-dialog :where(button, a, input, textarea, select):focus-visible {
+    outline: 3px solid var(--theme-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Estados semânticos usam fundos sólidos e sóbrios. */
+.system-layout .bg-amber-400\/5,
+.system-layout .bg-amber-400\/10 {
+    background-color: var(--theme-warning-surface) !important;
+}
+
+.system-layout .border-amber-400\/20,
+.system-layout .border-amber-400\/30 {
+    border-color: color-mix(
+        in srgb,
+        var(--theme-warning) 55%,
+        var(--theme-border)
+    ) !important;
+}
+
+.system-layout .text-amber-300,
+.system-layout .text-amber-300\/70,
+.system-layout .text-amber-400 {
+    color: var(--theme-warning) !important;
+}
+
+.system-layout .bg-emerald-400\/10,
+.system-layout .bg-emerald-500\/10 {
+    background-color: var(--theme-success-surface) !important;
+}
+
+.system-layout .text-emerald-300,
+.system-layout .text-emerald-400 {
+    color: var(--theme-success) !important;
+}
+
+.system-layout .bg-red-400\/10,
+.system-layout .bg-red-500\/10 {
+    background-color: var(--theme-danger-surface) !important;
+}
+
+.system-layout .text-red-300,
+.system-layout .text-red-400,
+.system-layout .text-red-500 {
+    color: var(--theme-danger) !important;
+}
+
+/* Menu lateral padronizado, mantendo hover e resposta ao clique. */
+.wc-sidebar-item-default {
+    color: var(--theme-text-secondary);
+}
+
+.wc-sidebar-item-default:hover,
+.wc-sidebar-item-default:focus-visible {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-hover);
+}
+
+.wc-sidebar-item-danger {
+    color: var(--theme-text-secondary);
+}
+
+.wc-sidebar-item-danger:hover,
+.wc-sidebar-item-danger:focus-visible {
+    color: var(--theme-danger);
+    background-color: var(--theme-danger-surface);
+}
+
+/*
+ * ========================================================================
+ * MODAL GLOBAL DE AUTENTICAÇÃO
+ * ========================================================================
+ * A opacidade escurece somente a página atrás do modal. O conteúdo do modal,
+ * os campos e os textos permanecem totalmente sólidos.
+ */
+.wc-auth-overlay {
+    background-color: rgb(7 21 34 / 0.68) !important;
+    backdrop-filter: blur(4px);
+}
+
+.wc-auth-dialog {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text-primary);
+    box-shadow: 0 24px 64px rgb(0 0 0 / 0.28) !important;
+    backdrop-filter: none !important;
+}
+
+.wc-auth-rail {
+    background-color: var(--theme-shell) !important;
+    border-color: var(--theme-border) !important;
+}
+
+.wc-auth-content {
+    background-color: var(--theme-surface-raised) !important;
+}
+
+.wc-auth-title,
+.wc-auth-rail-title {
+    color: var(--theme-text-primary) !important;
+}
+
+.wc-auth-subtitle,
+.wc-auth-quote {
+    color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-label {
+    color: var(--theme-text-secondary) !important;
+}
+
+.wc-auth-field {
+    background-color: var(--theme-control) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text-primary) !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+}
+
+.wc-auth-field::placeholder {
+    color: var(--theme-text-muted) !important;
+    opacity: 1 !important;
+}
+
+.wc-auth-field:focus {
+    border-color: var(--theme-focus) !important;
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--theme-focus) 24%, transparent) !important;
+}
+
+.wc-auth-field:read-only {
+    background-color: var(--theme-surface-muted) !important;
+    color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-dialog svg {
+    color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-dialog .text-brand {
+    color: var(--theme-highlight) !important;
+}
+
+.wc-auth-close svg,
+.wc-auth-role-icon svg {
+    color: inherit !important;
+}
+
+.wc-auth-role {
+    background-color: var(--theme-surface-raised) !important;
+    border-color: transparent !important;
+    color: var(--theme-text-secondary) !important;
+    box-shadow: none !important;
+}
+
+.wc-auth-role:hover {
+    background-color: var(--theme-hover) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+.wc-auth-role[data-active="true"] {
+    background-color: color-mix(
+        in srgb,
+        var(--theme-highlight) 16%,
+        var(--theme-surface)
+    ) !important;
+    border-color: var(--theme-highlight) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+.wc-auth-role-icon {
+    background-color: var(--theme-surface-muted) !important;
+    color: var(--theme-text-secondary) !important;
+}
+
+.wc-auth-role[data-active="true"] .wc-auth-role-icon {
+    background-color: var(--theme-highlight) !important;
+    color: var(--theme-on-highlight) !important;
+}
+
+.wc-auth-primary {
+    background-color: var(--theme-highlight) !important;
+    color: var(--theme-on-highlight) !important;
+    box-shadow: none !important;
+}
+
+.wc-auth-primary:hover {
+    background-color: var(--theme-highlight-hover) !important;
+}
+
+.wc-auth-switch {
+    color: var(--theme-highlight) !important;
+}
+
+.wc-auth-switch:hover {
+    color: var(--theme-highlight-hover) !important;
+}
+
+.wc-auth-close {
+    color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-close:hover {
+    color: var(--theme-text-primary) !important;
+    background-color: var(--theme-hover) !important;
+}
+
+/* Mantém a leitura confortável no formulário em celulares estreitos. */
+@media (max-width: 39.999rem) {
+    .wc-auth-dialog {
+        max-height: calc(100dvh - 2rem);
+        overflow-y: auto;
+    }
 }

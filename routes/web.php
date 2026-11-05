@@ -219,4 +219,13 @@ Route::middleware('auth')
         )
             ->whereNumber('solicitacao')
             ->middleware('throttle:10,1');
+        /*
+ * Permite que o cliente aceite ou recuse o orçamento recebido.
+ */
+Route::patch(
+    '/solicitacoes/{solicitacao}/resposta',
+    [SolicitacaoController::class, 'responderOrcamento'],
+)
+    ->whereNumber('solicitacao')
+    ->middleware('throttle:10,1');
     });
