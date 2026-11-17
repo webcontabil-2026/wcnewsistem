@@ -2,6 +2,7 @@ import {
     Calendar,
     ChevronDown,
     ChevronUp,
+    ClipboardList,
     FileText,
     FolderOpen,
     LayoutDashboard,
@@ -188,6 +189,14 @@ export default function ClientSidebar({
                         />
 
                         <SidebarItem
+                            active={activeTab === "solicitacoes"}
+                            onClick={() => onSelecionarAba("solicitacoes")}
+                            icon={<ClipboardList className="w-5 h-5" />}
+                            label="Solicitações"
+                            collapsed={menuRecolhido}
+                        />
+
+                        <SidebarItem
                             active={activeTab === "documentos"}
                             onClick={() => onSelecionarAba("documentos")}
                             icon={<FolderOpen className="w-5 h-5" />}
@@ -315,6 +324,16 @@ export default function ClientSidebar({
                                 onClick={() => selecionarAbaMobile("servicos")}
                                 icon={<FileText className="w-5 h-5" />}
                                 label="Serviços"
+                                collapsed={false}
+                            />
+
+                            <SidebarItem
+                                active={activeTab === "solicitacoes"}
+                                onClick={() =>
+                                    selecionarAbaMobile("solicitacoes")
+                                }
+                                icon={<ClipboardList className="w-5 h-5" />}
+                                label="Solicitações"
                                 collapsed={false}
                             />
 

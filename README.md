@@ -1,58 +1,193 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WebContabil
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plataforma web desenvolvida como projeto de TCC para aproximar clientes e profissionais de contabilidade, centralizando serviços, documentos, comunicação e informações financeiras.
 
-## About Laravel
+## Situação do projeto
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+O sistema está em desenvolvimento e passa atualmente pela integração completa entre as interfaces existentes, o backend Laravel e o banco de dados MySQL.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+A autenticação e a sessão real já estão integradas. A estrutura das migrations ainda será reconciliada com o banco oficial do projeto.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+> Não execute `migrate:fresh`, `migrate:refresh` ou `migrate:reset`. Esses comandos podem apagar dados locais. As migrations ainda serão revisadas em uma etapa específica.
 
-## Learning Laravel
+## Funcionalidades atuais
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Páginas públicas institucionais;
+- Cadastro e autenticação com sessão Laravel;
+- Perfis de cliente, contador e administrador;
+- Proteção das páginas internas por autenticação;
+- Painel financeiro do cliente;
+- Cadastro e exclusão de lançamentos financeiros;
+- Upload e download protegido de comprovantes;
+- Preferências de tema e notificações;
+- Interface responsiva com temas claro e escuro;
+- Páginas de privacidade e termos de uso.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Funcionalidades planejadas
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- Fluxo completo de contratação de serviços;
+- Envio de orçamento pelo contador;
+- Aceitação de orçamento pelo cliente;
+- Gestão de documentos entre cliente e contador;
+- Conversas internas;
+- Agenda fiscal e notificações;
+- Solicitação segura de exclusão de conta;
+- Expansão dos painéis do contador e administrador.
 
-## Agentic Development
+## Tecnologias
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Backend
 
-```bash
-composer require laravel/boost --dev
+- PHP 8.3 ou superior;
+- Laravel 13;
+- MySQL;
+- Composer.
 
-php artisan boost:install
+### Frontend
+
+- React 19;
+- TypeScript;
+- Vite;
+- Tailwind CSS;
+- Recharts;
+- Motion;
+- Lucide React.
+
+## Ambiente recomendado
+
+O desenvolvimento local é realizado no Windows utilizando:
+
+- Laragon;
+- PHP 8.5.4 do Laragon;
+- MySQL;
+- Node.js e npm;
+- Composer;
+- Visual Studio Code.
+
+## Instalação local
+
+Clone o repositório:
+
+```powershell
+git clone https://github.com/webcontabil-2026/wcnewsistem.git
+cd wcnewsistem
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Instale as dependências PHP:
 
-## Contributing
+```powershell
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Crie o arquivo de ambiente:
 
-## Code of Conduct
+```powershell
+Copy-Item .env.example .env
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Gere a chave da aplicação utilizando o PHP do Laragon:
 
-## Security Vulnerabilities
+```powershell
+& "C:\laragon\bin\php\php-8.5.4-nts-Win32-vs17-x64\php.exe" artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Instale as dependências do frontend:
 
-## License
+```powershell
+npm.cmd install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Configuração do banco
+
+Configure o `.env` com os dados do MySQL local:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nome_do_banco_local
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+O arquivo `.env` contém configurações particulares de cada computador e não deve ser enviado ao Git.
+
+Enquanto a reconciliação das migrations não estiver concluída, a estrutura oficial do banco deverá ser importada conforme as orientações internas da equipe.
+
+## Execução
+
+Com o Laragon iniciado, execute o frontend em modo de desenvolvimento:
+
+```powershell
+npm.cmd run dev
+```
+
+A aplicação poderá ser acessada pelo domínio local configurado no Laragon, normalmente:
+
+```text
+http://wcnewsistem.test
+```
+
+## Verificações de qualidade
+
+TypeScript:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Build de produção:
+
+```powershell
+npm.cmd run build
+```
+
+Testes Laravel:
+
+```powershell
+& "C:\laragon\bin\php\php-8.5.4-nts-Win32-vs17-x64\php.exe" artisan test
+```
+
+Verificação de formatação do diff:
+
+```powershell
+git diff --check
+```
+
+## Estrutura principal
+
+```text
+app/
+├── Http/Controllers/    Controllers do backend
+└── Models/              Models do banco de dados
+
+database/
+├── migrations/          Estrutura versionada do banco
+└── seeders/             Dados iniciais de desenvolvimento
+
+resources/
+├── css/                 Estilos globais e temas
+├── js/                  Aplicação React e TypeScript
+│   └── components/      Componentes separados por área
+└── views/               Views Blade do Laravel
+
+routes/
+└── web.php              Rotas públicas, autenticadas e APIs internas
+
+tests/
+└── Feature/             Testes de comportamento da aplicação
+```
+
+## Fluxo de desenvolvimento
+
+1. Atualizar a branch `main`;
+2. Criar uma branch específica para a etapa;
+3. Implementar e testar a etapa completa;
+4. Criar um commit descritivo;
+5. Publicar a branch;
+6. Abrir uma pull request;
+7. Revisar e integrar à `main`.
+
+## Equipe
+
+Projeto acadêmico desenvolvido pela equipe WebContabil como Trabalho de Conclusão de Curso.

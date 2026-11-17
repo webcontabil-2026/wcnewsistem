@@ -3,28 +3,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import ContaCliente from "./client/ContaCliente";
-import PrivacidadeCliente from "./client/PrivacidadeCliente";
-import PerfilCliente from "./client/PerfilCliente";
-import ConfiguracoesCliente from "./client/ConfiguracoesCliente";
-import PreferenciasCliente from "./client/PreferenciasCliente";
-import DashboardInicio from "./client/DashboardInicio";
+import { FormEvent, useEffect, useState } from "react";
+
+import { ApiError, apiRequest } from "../lib/api";
+import { User } from "../types";
 import ClientHeader from "./client/ClientHeader";
 import ClientSidebar from "./client/ClientSidebar";
+import ConfiguracoesCliente from "./client/ConfiguracoesCliente";
+import ContaCliente from "./client/ContaCliente";
+import DashboardInicio from "./client/DashboardInicio";
 import FinanceiroCliente from "./client/FinanceiroCliente";
 import NovoLancamentoModal from "./client/NovoLancamentoModal";
+import PerfilCliente from "./client/PerfilCliente";
+import PreferenciasCliente from "./client/PreferenciasCliente";
+import PrivacidadeCliente from "./client/PrivacidadeCliente";
+import { parseCurrencyInput } from "./client/financeiro/formatadores";
+import { criarDadosGraficoFinanceiro } from "./client/financeiro/grafico";
 import { gerarRelatorioFinanceiro } from "./client/financeiro/RelatorioFinanceiro";
-import { FormEvent, useEffect, useState } from "react";
-import { User } from "../types";
-import { ApiError, apiRequest } from "../lib/api";
 import {
     AnexoFinanceiro,
     LancamentoFinanceiro,
     PeriodoGraficoFinanceiro,
     TipoLancamentoFinanceiro,
 } from "./client/financeiro/tipos";
-import { parseCurrencyInput } from "./client/financeiro/formatadores";
-import { criarDadosGraficoFinanceiro } from "./client/financeiro/grafico";
+import SolicitacoesCliente from "./client/solicitacoes/SolicitacoesCliente";
+import useSolicitacoesCliente from "./client/solicitacoes/useSolicitacoesCliente";
 
 interface ClientDashboardProps {
     user: User;
@@ -36,6 +39,20 @@ export default function ClientDashboard({
     onLogout,
 }: ClientDashboardProps) {
     const [activeTab, setActiveTab] = useState("inicio");
+
+    /*
+     * Controla as solicitações e os orçamentos
+     * pertencentes ao cliente autenticado.
+     */
+    const {
+        solicitacoes,
+        carregandoSolicitacoes,
+        respondendoSolicitacaoId,
+        erroSolicitacoes,
+        mensagemSolicitacoes,
+        carregarSolicitacoes,
+        responderOrcamento,
+    } = useSolicitacoesCliente();
 
     const [isFinancialEntryModalOpen, setIsFinancialEntryModalOpen] =
         useState(false);
@@ -54,19 +71,25 @@ export default function ClientDashboard({
 
     const [financialEntryError, setFinancialEntryError] = useState("");
     const [financialEntryMessage, setFinancialEntryMessage] = useState("");
+
     /*
      * Controla o carregamento e os erros dos dados financeiros.
      */
     const [isLoadingFinancialEntries, setIsLoadingFinancialEntries] =
         useState(true);
+
     const [isSavingFinancialEntry, setIsSavingFinancialEntry] = useState(false);
+
     const [financialDataError, setFinancialDataError] = useState("");
+
     /*
      * Controla o processo de geração do relatório financeiro.
      */
     const [isExportingFinancialPdf, setIsExportingFinancialPdf] =
         useState(false);
+
     const [financialExportError, setFinancialExportError] = useState("");
+
     /*
      * Define o período apresentado no gráfico financeiro.
      * O valor representa a quantidade de dias considerados.
@@ -76,16 +99,22 @@ export default function ClientDashboard({
 
     const [financialEntryAttachment, setFinancialEntryAttachment] =
         useState<File | null>(null);
+
     /*
      * Controla qual categoria das configurações está aberta.
-     * As funções internas serão conectadas ao banco de dados futuramente.
      */
     const [settingsSection, setSettingsSection] = useState<
         "menu" | "perfil" | "preferencias" | "privacidade" | "conta"
     >("menu");
 
     /*
-     * Carrega do banco os lançamentos pertencentes ao usuário atual.
+     * Controla a abertura do menu em celulares e tablets.
+     */
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    /*
+     * Carrega do banco os lançamentos pertencentes
+     * ao usuário autenticado.
      */
     useEffect(() => {
         let isComponentMounted = true;
@@ -122,11 +151,6 @@ export default function ClientDashboard({
             isComponentMounted = false;
         };
     }, []);
-    /*
-     * Controla a abertura do menu em celulares e tablets.
-     * Em telas grandes, o menu lateral permanente continua sendo utilizado.
-     */
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     /*
      * Valida o formulário e salva o lançamento no Laravel.
@@ -148,6 +172,7 @@ export default function ClientDashboard({
             setFinancialEntryError(
                 "Preencha todos os campos e informe um valor maior que zero.",
             );
+
             return;
         }
 
@@ -164,11 +189,14 @@ export default function ClientDashboard({
             const requestData = new FormData();
 
             requestData.append("type", financialEntryForm.type);
+
             requestData.append(
                 "description",
                 financialEntryForm.description.trim(),
             );
+
             requestData.append("category", financialEntryForm.category.trim());
+
             requestData.append("amount", amount.toFixed(2));
             requestData.append("date", financialEntryForm.date);
 
@@ -185,7 +213,8 @@ export default function ClientDashboard({
             });
 
             /*
-             * O painel recebe o lançamento já salvo e identificado pelo banco.
+             * O painel recebe o lançamento já salvo
+             * e identificado pelo banco.
              */
             setFinancialEntries((currentEntries) => [
                 response.entry,
@@ -217,9 +246,10 @@ export default function ClientDashboard({
             setIsSavingFinancialEntry(false);
         }
     };
+
     /*
-     * Calcula automaticamente o resumo com base nos lançamentos cadastrados.
-     * Transferências e ajustes permanecem neutros nesta etapa.
+     * Calcula automaticamente o resumo com base
+     * nos lançamentos cadastrados.
      */
     const financialSummary = financialEntries.reduce(
         (summary, entry) => {
@@ -246,18 +276,17 @@ export default function ClientDashboard({
         financialEntries,
         financialChartPeriod,
     );
+
     /*
-     * Abre temporariamente o anexo selecionado em uma nova guia.
-     */
-    /*
-     * Abre o comprovante protegido utilizando a rota do Laravel.
+     * Abre o comprovante protegido utilizando
+     * a rota do Laravel.
      */
     const handleOpenFinancialAttachment = (attachment: AnexoFinanceiro) => {
         window.open(attachment.url, "_blank", "noopener,noreferrer");
     };
 
     /*
-     * Exclui o lançamento do banco e depois atualiza o painel.
+     * Exclui o lançamento do banco e atualiza o painel.
      */
     const handleDeleteFinancialEntry = async (entry: LancamentoFinanceiro) => {
         const confirmed = window.confirm(
@@ -292,9 +321,10 @@ export default function ClientDashboard({
             );
         }
     };
+
     /*
-     * Gera um relatório em PDF considerando o período selecionado no gráfico.
-     * Os pacotes são carregados apenas quando o usuário solicita a exportação.
+     * Gera um relatório em PDF considerando
+     * o período selecionado no gráfico.
      */
     const handleExportFinancialPdf = async () => {
         setFinancialExportError("");
@@ -324,6 +354,7 @@ export default function ClientDashboard({
             setIsExportingFinancialPdf(false);
         }
     };
+
     return (
         <div className="system-layout flex h-screen overflow-hidden">
             <ClientSidebar
@@ -338,20 +369,12 @@ export default function ClientDashboard({
                 onLogout={onLogout}
             />
 
-            <main className="min-w-0 flex-grow flex flex-col overflow-x-hidden overflow-y-auto">
-                {" "}
-                {/*
-                 * O cabeçalho utiliza altura mínima e espaçamento fluido para manter
-                 * os elementos confortáveis em notebooks e monitores maiores.
-                 */}
+            <main className="flex min-w-0 flex-grow flex-col overflow-x-hidden overflow-y-auto">
                 <ClientHeader
                     user={user}
                     onAbrirMenuMobile={() => setIsMobileMenuOpen(true)}
                 />
-                {/*
-                 * Exibe a tela de configurações separadamente do painel inicial.
-                 * As funções serão conectadas ao banco de dados em uma etapa futura.
-                 */}
+
                 {activeTab === "configuracoes" &&
                     settingsSection === "menu" && (
                         <ConfiguracoesCliente
@@ -360,6 +383,7 @@ export default function ClientDashboard({
                             }
                         />
                     )}
+
                 {activeTab === "configuracoes" &&
                     settingsSection === "perfil" && (
                         <PerfilCliente
@@ -367,24 +391,40 @@ export default function ClientDashboard({
                             onVoltar={() => setSettingsSection("menu")}
                         />
                     )}
+
                 {activeTab === "configuracoes" &&
                     settingsSection === "preferencias" && (
                         <PreferenciasCliente
                             onVoltar={() => setSettingsSection("menu")}
                         />
                     )}
+
                 {activeTab === "configuracoes" &&
                     settingsSection === "privacidade" && (
                         <PrivacidadeCliente
                             onVoltar={() => setSettingsSection("menu")}
                         />
                     )}
+
                 {activeTab === "configuracoes" &&
                     settingsSection === "conta" && (
                         <ContaCliente
                             onVoltar={() => setSettingsSection("menu")}
                         />
                     )}
+
+                {activeTab === "solicitacoes" && (
+                    <SolicitacoesCliente
+                        solicitacoes={solicitacoes}
+                        carregando={carregandoSolicitacoes}
+                        respondendoId={respondendoSolicitacaoId}
+                        erro={erroSolicitacoes}
+                        mensagem={mensagemSolicitacoes}
+                        onRecarregar={carregarSolicitacoes}
+                        onResponder={responderOrcamento}
+                    />
+                )}
+
                 {activeTab === "financeiro" && (
                     <>
                         <FinanceiroCliente
@@ -423,6 +463,7 @@ export default function ClientDashboard({
                         />
                     </>
                 )}
+
                 {activeTab === "inicio" && (
                     <DashboardInicio
                         user={user}

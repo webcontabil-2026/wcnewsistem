@@ -41,7 +41,7 @@ class Empresa extends Model
     {
         return $this->belongsTo(
             Cliente::class,
-            'cliente_id'
+            'cliente_id',
         );
     }
 
@@ -52,7 +52,7 @@ class Empresa extends Model
     {
         return $this->hasMany(
             LancamentoFinanceiro::class,
-            'empresa_id'
+            'empresa_id',
         );
     }
 
@@ -63,16 +63,29 @@ class Empresa extends Model
     {
         return $this->hasMany(
             Documento::class,
-            'empresa_id'
+            'empresa_id',
         );
-    }    /**
+    }
+
+    /**
      * Retorna os vínculos entre a empresa e os contadores.
      */
     public function vinculosComContadores(): HasMany
     {
         return $this->hasMany(
             EmpresaContador::class,
-            'empresa_id'
+            'empresa_id',
+        );
+    }
+
+    /**
+     * Retorna as solicitações relacionadas à empresa.
+     */
+    public function solicitacoes(): HasMany
+    {
+        return $this->hasMany(
+            Solicitacao::class,
+            'empresa_id',
         );
     }
 }

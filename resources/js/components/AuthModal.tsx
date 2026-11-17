@@ -116,20 +116,23 @@ export default function AuthModal({
     };
 
     const inputClasses =
-        "w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-brand/50 focus:border-brand/50 outline-none transition-all placeholder:text-white/20 text-white text-sm backdrop-blur-sm";
+        "wc-auth-field w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-brand/50 focus:border-brand/50 outline-none transition-all placeholder:text-white/20 text-white text-sm backdrop-blur-sm";
     const labelClasses =
-        "block text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1.5 ml-1";
+        "wc-auth-label block text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1.5 ml-1";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md">
+        <div className="wc-auth-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]"
+                className="wc-auth-dialog bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="wc-auth-title"
             >
-                <div className="w-full md:w-56 bg-white/5 border-r border-white/10 p-8 flex flex-col gap-4">
-                    <h3 className="text-sm font-bold text-white/80 mb-4 flex items-center gap-2">
+                <div className="wc-auth-rail w-full md:w-56 bg-white/5 border-r border-white/10 p-8 flex flex-col gap-4">
+                    <h3 className="wc-auth-rail-title text-sm font-bold text-white/80 mb-4 flex items-center gap-2">
                         <Lock className="w-4 h-4 text-brand" />
                         Perfil de Acesso
                     </h3>
@@ -151,27 +154,32 @@ export default function AuthModal({
                         icon={<ShieldCheck className="w-4 h-4" />}
                         label="Admin"
                     />
-                    <div className="mt-auto pt-6 text-[10px] text-white/30 leading-relaxed italic">
+                    <div className="wc-auth-quote mt-auto pt-6 text-[10px] text-white/30 leading-relaxed italic">
                         "A ponte inteligente entre o contador e o cliente."
                     </div>
                 </div>
 
-                <div className="flex-grow p-10 relative">
+                <div className="wc-auth-content flex-grow p-10 relative">
                     <button
                         onClick={onClose}
-                        className="absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition-colors group"
+                        className="wc-auth-close absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition-colors group"
+                        type="button"
+                        aria-label="Fechar autenticação"
                     >
                         <X className="w-5 h-5 text-white/40 group-hover:text-white" />
                     </button>
 
                     <div className="max-w-sm mx-auto space-y-8">
                         <div className="text-center md:text-left">
-                            <h2 className="text-3xl font-bold text-white tracking-tight">
+                            <h2
+                                id="wc-auth-title"
+                                className="wc-auth-title text-3xl font-bold text-white tracking-tight"
+                            >
                                 {mode === "LOGIN"
                                     ? "Acesso WebContabil"
                                     : "Nova Conta"}
                             </h2>
-                            <p className="text-sm text-white/40 mt-1 font-medium">
+                            <p className="wc-auth-subtitle text-sm text-white/40 mt-1 font-medium">
                                 {role === "CLIENT" &&
                                     "Área Restrita do Cliente"}
                                 {role === "ACCOUNTANT" &&
@@ -414,7 +422,7 @@ export default function AuthModal({
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="mt-4 w-full rounded-2xl bg-brand py-4 font-bold text-white shadow-xl shadow-brand/40 transition-all hover:bg-brand-light active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+                                className="wc-auth-primary mt-4 w-full rounded-2xl bg-brand py-4 font-bold text-white shadow-xl shadow-brand/40 transition-all hover:bg-brand-light active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                             >
                                 {isSubmitting
                                     ? "Aguarde..."
@@ -431,7 +439,8 @@ export default function AuthModal({
                                         mode === "LOGIN" ? "REGISTER" : "LOGIN",
                                     )
                                 }
-                                className="text-xs font-bold text-brand hover:text-brand-light transition-colors uppercase tracking-widest"
+                                className="wc-auth-switch text-xs font-bold text-brand hover:text-brand-light transition-colors uppercase tracking-widest"
+                                type="button"
                             >
                                 {mode === "LOGIN"
                                     ? "Ainda não é membro?"
@@ -459,8 +468,10 @@ function RoleTab({
     return (
         <button
             onClick={onClick}
+            type="button"
+            data-active={active}
             className={cn(
-                "flex items-center gap-3 w-full p-3 rounded-2xl text-xs font-bold border-2 transition-all group",
+                "wc-auth-role flex items-center gap-3 w-full p-3 rounded-2xl text-xs font-bold border-2 transition-all group",
                 active
                     ? "bg-brand/10 border-brand/50 text-white shadow-lg shadow-brand/10"
                     : "bg-white/5 border-transparent text-white/30 hover:bg-white/10",
@@ -468,7 +479,7 @@ function RoleTab({
         >
             <div
                 className={cn(
-                    "p-2 rounded-xl transition-colors",
+                    "wc-auth-role-icon p-2 rounded-xl transition-colors",
                     active
                         ? "bg-brand text-white"
                         : "bg-white/5 text-white/20 group-hover:text-white/40",

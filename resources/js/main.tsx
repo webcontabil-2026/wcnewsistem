@@ -1,21 +1,22 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import LandingPage from "./components/LandingPage";
+
+import AdminDashboard from "./components/AdminDashboard";
 import AuthModal from "./components/AuthModal";
 import ClientDashboard from "./components/ClientDashboard";
-import AccountantDashboard from "./components/AccountantDashboard";
-import AdminDashboard from "./components/AdminDashboard";
+import ContadorDashboard from "./components/ContadorDashboard";
+import LandingPage from "./components/LandingPage";
 import { ApiError, apiRequest } from "./lib/api";
-import { User } from "./types";
+import type { User } from "./types";
 
 /**
- * Controla o dashboard usando exclusivamente a sessão autenticada
- * pelo Laravel.
+ * Controla o dashboard usando exclusivamente a sessão
+ * autenticada pelo Laravel.
  */
 function DashboardAutenticado() {
-    const [user, setUser] = useState<User | null>(null);
-    const [verificandoSessao, setVerificandoSessao] = useState(true);
-    const [erroSessao, setErroSessao] = useState("");
+    const [usuario, definirUsuario] = useState<User | null>(null);
+    const [verificandoSessao, definirVerificandoSessao] = useState(true);
+    const [erroSessao, definirErroSessao] = useState("");
 
     /*
      * Consulta o usuário autenticado ao carregar o dashboard.
@@ -30,27 +31,28 @@ function DashboardAutenticado() {
                 }>("/auth/current");
 
                 if (componenteAtivo) {
-                    setUser(resposta.user);
+                    definirUsuario(resposta.user);
                 }
-            } catch (error) {
+            } catch (erro) {
                 /*
-                 * Usuários sem sessão são encaminhados para o login.
+                 * Usuários sem sessão são encaminhados
+                 * para a página de login.
                  */
-                if (error instanceof ApiError && error.status === 401) {
+                if (erro instanceof ApiError && erro.status === 401) {
                     window.location.replace("/login");
                     return;
                 }
 
                 if (componenteAtivo) {
-                    setErroSessao(
-                        error instanceof ApiError
-                            ? error.message
+                    definirErroSessao(
+                        erro instanceof ApiError
+                            ? erro.message
                             : "Não foi possível verificar sua sessão.",
                     );
                 }
             } finally {
                 if (componenteAtivo) {
-                    setVerificandoSessao(false);
+                    definirVerificandoSessao(false);
                 }
             }
         };
@@ -63,15 +65,16 @@ function DashboardAutenticado() {
     }, []);
 
     /*
-     * Encerra a sessão no servidor e retorna à página inicial.
+     * Encerra a sessão no servidor e retorna
+     * para a página inicial.
      */
     const encerrarSessao = async () => {
         try {
             await apiRequest("/auth/logout", {
                 method: "POST",
             });
-        } catch (error) {
-            console.error("Erro ao encerrar a sessão:", error);
+        } catch (erro) {
+            console.error("Erro ao encerrar a sessão:", erro);
         } finally {
             window.location.replace("/");
         }
@@ -79,7 +82,10 @@ function DashboardAutenticado() {
 
     if (verificandoSessao) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-200">
+            <div
+                className="flex min-h-screen items-center
+                    justify-center bg-slate-950 text-slate-200"
+            >
                 <p className="text-sm font-semibold text-white/60">
                     Verificando sessão...
                 </p>
@@ -89,7 +95,11 @@ function DashboardAutenticado() {
 
     if (erroSessao) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center text-slate-200">
+            <div
+                className="flex min-h-screen flex-col items-center
+                    justify-center gap-4 bg-slate-950 px-6
+                    text-center text-slate-200"
+            >
                 <p className="text-sm font-semibold text-red-400">
                     {erroSessao}
                 </p>
@@ -97,7 +107,9 @@ function DashboardAutenticado() {
                 <button
                     type="button"
                     onClick={() => window.location.reload()}
-                    className="rounded-xl bg-sky-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-sky-400"
+                    className="rounded-xl bg-sky-500 px-5 py-3
+                        text-sm font-bold text-white transition
+                        hover:bg-sky-400"
                 >
                     Tentar novamente
                 </button>
@@ -105,56 +117,63 @@ function DashboardAutenticado() {
         );
     }
 
-    if (!user) {
+    if (!usuario) {
         return null;
     }
 
-    if (user.role === "CLIENT") {
-        return <ClientDashboard user={user} onLogout={encerrarSessao} />;
+    if (usuario.role === "CLIENT") {
+        return <ClientDashboard user={usuario} onLogout={encerrarSessao} />;
     }
 
-    if (user.role === "ACCOUNTANT") {
-        return <AccountantDashboard user={user} onLogout={encerrarSessao} />;
+    if (usuario.role === "ACCOUNTANT") {
+        return <ContadorDashboard usuario={usuario} aoSair={encerrarSessao} />;
     }
 
-    if (user.role === "ADMIN") {
-        return <AdminDashboard user={user} onLogout={encerrarSessao} />;
+    if (usuario.role === "ADMIN") {
+        return <AdminDashboard user={usuario} onLogout={encerrarSessao} />;
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-red-400">
+        <div
+            className="flex min-h-screen items-center
+                justify-center bg-slate-950 px-6
+                text-center text-red-400"
+        >
             O perfil desta conta não possui permissão de acesso.
         </div>
     );
 }
 
-const rootElement = document.getElementById("root");
+const elementoRaiz = document.getElementById("root");
 
 /*
- * Inicializa o React somente nas páginas que possuem o elemento raiz.
+ * Inicializa o React somente nas páginas
+ * que possuem o elemento raiz.
  */
-if (rootElement) {
-    const page = rootElement.dataset.page || "landing";
+if (elementoRaiz) {
+    const pagina = elementoRaiz.dataset.page || "landing";
 
-    const navigate = (path: string) => {
-        window.location.href = path;
+    const navegar = (caminho: string) => {
+        window.location.href = caminho;
     };
 
     /*
-     * A sessão já foi criada pelo servidor durante o login ou cadastro.
-     * Não armazenamos o usuário no localStorage.
+     * A sessão já foi criada pelo servidor durante
+     * o login ou cadastro.
+     *
+     * O usuário não é armazenado no localStorage.
      */
-    const handleLogin = (_user: User) => {
-        navigate("/dashboard");
+    const aoEntrar = (_usuario: User) => {
+        navegar("/dashboard");
     };
 
-    const renderPage = () => {
-        switch (page) {
+    const renderizarPagina = () => {
+        switch (pagina) {
             case "landing":
                 return (
                     <LandingPage
-                        onOpenAuth={(mode) =>
-                            navigate(mode === "LOGIN" ? "/login" : "/register")
+                        onOpenAuth={(modo) =>
+                            navegar(modo === "LOGIN" ? "/login" : "/register")
                         }
                     />
                 );
@@ -163,8 +182,8 @@ if (rootElement) {
                 return (
                     <AuthModal
                         mode="LOGIN"
-                        onClose={() => navigate("/")}
-                        onLogin={handleLogin}
+                        onClose={() => navegar("/")}
+                        onLogin={aoEntrar}
                     />
                 );
 
@@ -172,8 +191,8 @@ if (rootElement) {
                 return (
                     <AuthModal
                         mode="REGISTER"
-                        onClose={() => navigate("/")}
-                        onLogin={handleLogin}
+                        onClose={() => navegar("/")}
+                        onLogin={aoEntrar}
                     />
                 );
 
@@ -183,13 +202,15 @@ if (rootElement) {
             default:
                 return (
                     <LandingPage
-                        onOpenAuth={(mode) =>
-                            navigate(mode === "LOGIN" ? "/login" : "/register")
+                        onOpenAuth={(modo) =>
+                            navegar(modo === "LOGIN" ? "/login" : "/register")
                         }
                     />
                 );
         }
     };
 
-    createRoot(rootElement).render(<StrictMode>{renderPage()}</StrictMode>);
+    createRoot(elementoRaiz).render(
+        <StrictMode>{renderizarPagina()}</StrictMode>,
+    );
 }
