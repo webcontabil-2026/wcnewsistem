@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { ApiError, apiRequest } from "../../lib/api";
 import { cn } from "../../lib/utils";
 
-type TemaUsuario = "dark" | "light" | "high-contrast";
+type TemaUsuario = "dark" | "light";
 
 interface PreferenciasUsuario {
     tema: TemaUsuario;
@@ -290,9 +290,9 @@ export default function PreferenciasCliente({
                                 </select>
 
                                 <p className="mt-4 text-xs leading-relaxed text-white/40">
-                                    A estrutura já está preparada para receber
-                                    opções adicionais de acessibilidade, como
-                                    alto contraste.
+                                    Os dois modos utilizam a mesma paleta da
+                                    marca, com contraste ajustado para cada
+                                    fundo.
                                 </p>
                             </div>
                         </article>

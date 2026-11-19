@@ -17,6 +17,7 @@ use Illuminate\Notifications\Notifiable;
     'password',
     'role',
     'status',
+    'foto_perfil',
 ])]
 #[Hidden([
     'password',

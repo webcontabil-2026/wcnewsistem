@@ -735,11 +735,6 @@
                 </div>
             </section>
 
-            {{--
-                TODO antes da disponibilização definitiva:
-                substituir este aviso por um e-mail ou formulário
-                oficial de atendimento.
-            --}}
             <section aria-labelledby="terms-contact-title">
                 <h2
                     id="terms-contact-title"
@@ -756,21 +751,16 @@
                         WebContabil.
                     </p>
 
-                    <div
-                        class="rounded-xl border p-5
-                               theme-border theme-surface-muted"
-                    >
-                        <p>
-                            <strong class="theme-text-high">
-                                Situação atual:
-                            </strong>
-
-                            o canal oficial de atendimento ainda está sendo
-                            definido pela equipe do projeto. As informações de
-                            contato deverão ser incluídas nesta página antes
-                            da disponibilização definitiva da plataforma.
-                        </p>
-                    </div>
+                    <p>
+                        Utilize o
+                        <a
+                            href="/contato"
+                            class="font-bold theme-link"
+                        >
+                            formulário oficial de contato
+                        </a>
+                        para encaminhar dúvidas relacionadas a estes Termos.
+                    </p>
 
                     <p>
                         Caso alguma disposição destes Termos seja considerada

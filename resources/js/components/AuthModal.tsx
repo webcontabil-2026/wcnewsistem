@@ -45,7 +45,6 @@ export default function AuthModal({
         cpf: "",
         cnpj: "",
         crc: "",
-        adminPass: "",
     });
 
     /*
@@ -56,12 +55,12 @@ export default function AuthModal({
         setAuthError("");
 
         /*
-         * O acesso administrativo não utiliza mais uma senha exposta no React.
-         * Ele será conectado a uma conta protegida na próxima etapa.
+         * Administradores não podem ser criados pelo formulário público.
+         * Contas administrativas existentes usam o mesmo login protegido.
          */
-        if (role === "ADMIN") {
+        if (role === "ADMIN" && mode === "REGISTER") {
             setAuthError(
-                "O acesso administrativo será configurado separadamente.",
+                "Contas administrativas são criadas somente pela equipe responsável. Se já possui uma conta, escolha entrar.",
             );
             return;
         }
@@ -126,12 +125,12 @@ export default function AuthModal({
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="wc-auth-dialog bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]"
+                className="wc-auth-dialog flex max-h-[calc(100dvh-2rem)] min-h-0 w-full max-w-2xl flex-col overflow-y-auto rounded-[28px] border border-white/20 bg-white/10 shadow-2xl backdrop-blur-2xl md:min-h-[600px] md:flex-row md:overflow-hidden md:rounded-[40px]"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="wc-auth-title"
             >
-                <div className="wc-auth-rail w-full md:w-56 bg-white/5 border-r border-white/10 p-8 flex flex-col gap-4">
+                <div className="wc-auth-rail flex w-full flex-col gap-3 border-r border-white/10 bg-white/5 p-5 md:w-56 md:gap-4 md:p-8">
                     <h3 className="wc-auth-rail-title text-sm font-bold text-white/80 mb-4 flex items-center gap-2">
                         <Lock className="w-4 h-4 text-brand" />
                         Perfil de Acesso
@@ -154,15 +153,15 @@ export default function AuthModal({
                         icon={<ShieldCheck className="w-4 h-4" />}
                         label="Admin"
                     />
-                    <div className="wc-auth-quote mt-auto pt-6 text-[10px] text-white/30 leading-relaxed italic">
+                    <div className="wc-auth-quote mt-auto hidden pt-6 text-[10px] italic leading-relaxed text-white/30 md:block">
                         "A ponte inteligente entre o contador e o cliente."
                     </div>
                 </div>
 
-                <div className="wc-auth-content flex-grow p-10 relative">
+                <div className="wc-auth-content relative flex-grow p-5 sm:p-8 md:p-10">
                     <button
                         onClick={onClose}
-                        className="wc-auth-close absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition-colors group"
+                        className="wc-auth-close group absolute right-4 top-4 rounded-full p-2 transition-colors hover:bg-white/10 sm:right-6 sm:top-6 md:right-8 md:top-8"
                         type="button"
                         aria-label="Fechar autenticação"
                     >
@@ -189,36 +188,18 @@ export default function AuthModal({
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {role === "ADMIN" ? (
-                                <div className="space-y-4 py-4">
-                                    <div className="relative">
-                                        <label className={labelClasses}>
-                                            Senha Mestre
-                                        </label>
-                                        <div className="relative">
-                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                            <input
-                                                type="password"
-                                                placeholder="••••••••"
-                                                className={inputClasses}
-                                                value={formData.adminPass}
-                                                onChange={(e) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        adminPass:
-                                                            e.target.value,
-                                                    })
-                                                }
-                                                required
-                                            />
-                                        </div>
-                                    </div>
+                            {role === "ADMIN" && mode === "REGISTER" ? (
+                                <div className="rounded-2xl border border-brand/30 bg-brand/10 p-5 text-sm leading-relaxed text-white/70">
+                                    Por segurança, o cadastro público de
+                                    administradores é bloqueado. Alterne para
+                                    “Já possui credenciais?” para entrar com
+                                    uma conta administrativa existente.
                                 </div>
                             ) : (
                                 <div className="space-y-4">
                                     {mode === "REGISTER" && (
                                         <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1">
                                                     <label
                                                         className={labelClasses}
@@ -276,7 +257,7 @@ export default function AuthModal({
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1">
                                                     <label
                                                         className={labelClasses}
@@ -343,17 +324,20 @@ export default function AuthModal({
                                                                 labelClasses
                                                             }
                                                         >
-                                                            CNPJ Secundário
+                                                            CNPJ
                                                         </label>
                                                         <div className="relative">
                                                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                                                             <input
                                                                 placeholder="00.000/0001-00"
-                                                                className={cn(
-                                                                    inputClasses,
-                                                                    "opacity-50",
-                                                                )}
-                                                                readOnly
+                                                                className={inputClasses}
+                                                                value={formData.cnpj}
+                                                                onChange={(e) =>
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        cnpj: e.target.value,
+                                                                    })
+                                                                }
                                                             />
                                                         </div>
                                                     </div>

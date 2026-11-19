@@ -9,11 +9,14 @@ return new class extends Migration
     /**
      * Cria as preferências individuais de cada usuário.
      *
-     * O tema é armazenado como texto para permitir novas opções
-     * futuramente, como alto contraste e outras paletas acessíveis.
+     * O tema é armazenado como texto e validado pela aplicação.
      */
     public function up(): void
     {
+        if (Schema::hasTable('preferencias_usuario')) {
+            return;
+        }
+
         Schema::create('preferencias_usuario', function (Blueprint $table) {
             $table->id();
 
@@ -23,15 +26,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            /*
-             * Não utilizamos enum para facilitar a inclusão futura
-             * de novos temas e modos de acessibilidade.
-             *
-             * Exemplos futuros:
-             * dark
-             * light
-             * high-contrast
-             */
+            // Valores permitidos atualmente: light e dark.
             $table->string('tema', 40)->default('dark');
 
             // Preferências de notificações do usuário.

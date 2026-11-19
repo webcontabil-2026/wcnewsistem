@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Solicitacao extends Model
 {
@@ -62,5 +63,10 @@ class Solicitacao extends Model
     public function servico(): BelongsTo
     {
         return $this->belongsTo(Servico::class);
+    }
+
+    public function mensagens(): HasMany
+    {
+        return $this->hasMany(Mensagem::class)->oldest();
     }
 }

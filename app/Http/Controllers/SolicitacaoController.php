@@ -377,6 +377,75 @@ class SolicitacaoController extends Controller
     }
 
     /**
+     * Permite que o contador responsável conclua ou retome um atendimento.
+     */
+    public function atualizarStatus(
+        Request $request,
+        Solicitacao $solicitacao,
+    ): JsonResponse {
+        $usuario = $request->user();
+
+        if ($usuario->role !== 'ACCOUNTANT') {
+            return response()->json([
+                'message' => 'Somente contadores podem atualizar o atendimento.',
+            ], 403);
+        }
+
+        $contador = $usuario->contador;
+
+        if (!$contador || $solicitacao->contador_id !== $contador->id) {
+            return response()->json([
+                'message' => 'Esta solicitação não está sob sua responsabilidade.',
+            ], 403);
+        }
+
+        $dados = $request->validate(
+            [
+                'status' => [
+                    'required',
+                    Rule::in([
+                        Solicitacao::STATUS_EM_ANDAMENTO,
+                        Solicitacao::STATUS_CONCLUIDA,
+                    ]),
+                ],
+            ],
+            [
+                'status.in' => 'O status informado não é permitido.',
+            ],
+        );
+
+        if (
+            !in_array(
+                $solicitacao->status,
+                [
+                    Solicitacao::STATUS_EM_ANDAMENTO,
+                    Solicitacao::STATUS_CONCLUIDA,
+                ],
+                true,
+            )
+        ) {
+            return response()->json([
+                'message' => 'O cliente precisa aceitar o orçamento antes desta alteração.',
+            ], 422);
+        }
+
+        $solicitacao->update(['status' => $dados['status']]);
+        $solicitacao->load([
+            'cliente.user',
+            'contador.user',
+            'empresa',
+            'servico',
+        ]);
+
+        return response()->json([
+            'message' => $dados['status'] === Solicitacao::STATUS_CONCLUIDA
+                ? 'Atendimento concluído com sucesso.'
+                : 'Atendimento retomado com sucesso.',
+            'solicitacao' => $this->formatarSolicitacao($solicitacao),
+        ]);
+    }
+
+    /**
      * Converte uma solicitação para o formato utilizado pelo React.
      *
      * @return array<string, mixed>

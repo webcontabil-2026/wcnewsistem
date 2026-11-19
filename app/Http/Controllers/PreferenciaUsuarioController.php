@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PreferenciaUsuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PreferenciaUsuarioController extends Controller
 {
@@ -44,19 +45,10 @@ class PreferenciaUsuarioController extends Controller
     public function update(Request $request): JsonResponse
     {
         $dadosValidados = $request->validate([
-            /*
-             * Mantemos o tema como texto para permitir
-             * novas opções futuramente.
-             *
-             * Exemplos:
-             * dark
-             * light
-             * high-contrast
-             */
             'tema' => [
                 'required',
                 'string',
-                'max:40',
+                Rule::in(['light', 'dark']),
             ],
 
             'notificacoes_sistema' => [

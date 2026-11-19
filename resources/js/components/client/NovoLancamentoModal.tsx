@@ -157,56 +157,56 @@ export default function NovoLancamentoModal({
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="servicos"
+                                    value="Serviços"
                                 >
                                     Serviços
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="honorarios"
+                                    value="Honorários"
                                 >
                                     Honorários
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="impostos"
+                                    value="Impostos"
                                 >
                                     Impostos
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="folha"
+                                    value="Folha de pagamento"
                                 >
                                     Folha de pagamento
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="fornecedores"
+                                    value="Fornecedores"
                                 >
                                     Fornecedores
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="equipamentos"
+                                    value="Equipamentos"
                                 >
                                     Equipamentos
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="reembolso"
+                                    value="Reembolso"
                                 >
                                     Reembolso
                                 </option>
 
                                 <option
                                     className="bg-slate-900 text-white"
-                                    value="outros"
+                                    value="Outras despesas"
                                 >
                                     Outros
                                 </option>

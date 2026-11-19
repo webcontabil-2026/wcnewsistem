@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AutenticacaoController extends Controller
 {
@@ -239,7 +240,10 @@ class AutenticacaoController extends Controller
             ],
         );
 
-        if (!Auth::attempt($credentials)) {
+        if (!Auth::attempt([
+            ...$credentials,
+            'status' => 'ativo',
+        ])) {
             return response()->json([
                 'message' => 'E-mail ou senha incorretos.',
             ], 422);
@@ -321,6 +325,13 @@ class AutenticacaoController extends Controller
             'razaoSocial' => $empresa?->razao_social,
 
             'cnpj' => $empresa?->cnpj,
+
+            'telefone' => $user->cliente?->telefone
+                ?? $user->contador?->telefone,
+
+            'fotoUrl' => $user->foto_perfil
+                ? Storage::disk('public')->url($user->foto_perfil)
+                : null,
         ];
     }
 }

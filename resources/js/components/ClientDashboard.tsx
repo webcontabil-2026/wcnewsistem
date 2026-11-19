@@ -9,14 +9,18 @@ import { ApiError, apiRequest } from "../lib/api";
 import { User } from "../types";
 import ClientHeader from "./client/ClientHeader";
 import ClientSidebar from "./client/ClientSidebar";
+import AgendaFiscalCliente from "./client/AgendaFiscalCliente";
 import ConfiguracoesCliente from "./client/ConfiguracoesCliente";
 import ContaCliente from "./client/ContaCliente";
 import DashboardInicio from "./client/DashboardInicio";
+import DocumentosCliente from "./client/DocumentosCliente";
 import FinanceiroCliente from "./client/FinanceiroCliente";
 import NovoLancamentoModal from "./client/NovoLancamentoModal";
 import PerfilCliente from "./client/PerfilCliente";
 import PreferenciasCliente from "./client/PreferenciasCliente";
 import PrivacidadeCliente from "./client/PrivacidadeCliente";
+import ServicosCliente from "./client/ServicosCliente";
+import ConversasSolicitacao from "./solicitacoes/ConversasSolicitacao";
 import { parseCurrencyInput } from "./client/financeiro/formatadores";
 import { criarDadosGraficoFinanceiro } from "./client/financeiro/grafico";
 import { gerarRelatorioFinanceiro } from "./client/financeiro/RelatorioFinanceiro";
@@ -424,6 +428,28 @@ export default function ClientDashboard({
                         onResponder={responderOrcamento}
                     />
                 )}
+
+                {activeTab === "servicos" && (
+                    <ServicosCliente
+                        onSolicitacaoCriada={() => {
+                            void carregarSolicitacoes();
+                            setActiveTab("solicitacoes");
+                        }}
+                    />
+                )}
+
+                {activeTab === "documentos" && (
+                    <DocumentosCliente
+                        lancamentos={financialEntries}
+                        onAbrirAnexo={handleOpenFinancialAttachment}
+                    />
+                )}
+
+                {activeTab === "conversas" && (
+                    <ConversasSolicitacao solicitacoes={solicitacoes} />
+                )}
+
+                {activeTab === "agenda" && <AgendaFiscalCliente />}
 
                 {activeTab === "financeiro" && (
                     <>

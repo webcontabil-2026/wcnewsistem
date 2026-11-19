@@ -1,376 +1,155 @@
-import { useRef, useState } from "react";
-import { ChevronRight, UserRound } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { Camera, ChevronRight, LoaderCircle, UserRound } from "lucide-react";
 
-import { User } from "../../types";
+import { ApiError, apiRequest } from "../../lib/api";
+import type { User } from "../../types";
 
 interface PerfilClienteProps {
     user: User;
     onVoltar: () => void;
 }
 
-/**
- * Tela de perfil do cliente.
- *
- * Nesta etapa, as alterações continuam sendo validadas
- * apenas no navegador. A persistência definitiva será
- * conectada ao backend posteriormente.
- */
+interface PerfilResposta {
+    message: string;
+    user: {
+        name: string;
+        email: string;
+        cpf: string | null;
+        telefone: string | null;
+        fotoUrl: string | null;
+    };
+}
+
+const formatarTelefone = (valor: string) => {
+    const numeros = valor.replace(/\D/g, "").slice(0, 11);
+    return numeros.length <= 10
+        ? numeros
+              .replace(/^(\d{2})(\d)/, "($1) $2")
+              .replace(/(\d{4})(\d)/, "$1-$2")
+        : numeros
+              .replace(/^(\d{2})(\d)/, "($1) $2")
+              .replace(/(\d{5})(\d)/, "$1-$2");
+};
+
+const formatarCpf = (valor: string) =>
+    valor
+        .replace(/\D/g, "")
+        .slice(0, 11)
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
 export default function PerfilCliente({ user, onVoltar }: PerfilClienteProps) {
-    const [imagemPerfilPreview, setImagemPerfilPreview] = useState<
-        string | null
-    >(null);
+    const [dados, setDados] = useState({
+        name: user.name,
+        email: user.email,
+        telefone: user.telefone ?? "",
+        cpf: user.cpf ?? "",
+    });
+    const [foto, setFoto] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(user.fotoUrl ?? null);
+    const [erro, setErro] = useState("");
+    const [mensagem, setMensagem] = useState("");
+    const [salvando, setSalvando] = useState(false);
+    const fotoRef = useRef<HTMLInputElement | null>(null);
 
-    const [erroImagemPerfil, setErroImagemPerfil] = useState("");
+    const selecionarFoto = (arquivo?: File) => {
+        if (!arquivo) return;
 
-    const [mensagemSalvamento, setMensagemSalvamento] = useState("");
-
-    const inputImagemPerfilRef = useRef<HTMLInputElement | null>(null);
-
-    /**
-     * Valida a imagem escolhida antes de gerar
-     * a prévia apresentada ao usuário.
-     */
-    const selecionarImagemPerfil = (
-        file: File | undefined,
-        input: HTMLInputElement,
-    ) => {
-        if (!file) {
+        if (!["image/png", "image/jpeg", "image/webp"].includes(arquivo.type)) {
+            setErro("Selecione uma imagem PNG, JPG ou WebP.");
             return;
         }
 
-        const tiposPermitidos = ["image/png", "image/jpeg", "image/webp"];
-
-        const tamanhoMaximoEmBytes = 5 * 1024 * 1024;
-
-        if (!tiposPermitidos.includes(file.type)) {
-            setErroImagemPerfil("Selecione uma imagem PNG, JPG ou WebP.");
-
-            input.value = "";
+        if (arquivo.size > 5 * 1024 * 1024) {
+            setErro("A imagem deve possuir no máximo 5 MB.");
             return;
         }
 
-        if (file.size > tamanhoMaximoEmBytes) {
-            setErroImagemPerfil("A imagem deve possuir no máximo 5 MB.");
-
-            input.value = "";
-            return;
-        }
-
-        setErroImagemPerfil("");
-
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            if (typeof reader.result === "string") {
-                setImagemPerfilPreview(reader.result);
-            }
-        };
-
-        reader.readAsDataURL(file);
+        setErro("");
+        setFoto(arquivo);
+        setPreview(URL.createObjectURL(arquivo));
     };
 
-    /**
-     * Aplica máscara simples de telefone
-     * enquanto o usuário digita.
-     */
-    const formatarTelefone = (valor: string) => {
-        const numeros = valor.replace(/\D/g, "").slice(0, 11);
+    const salvar = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setSalvando(true);
+        setErro("");
+        setMensagem("");
 
-        if (numeros.length <= 10) {
-            return numeros
-                .replace(/^(\d{2})(\d)/, "($1) $2")
-                .replace(/(\d{4})(\d)/, "$1-$2");
+        const formulario = new FormData();
+        formulario.append("name", dados.name.trim());
+        formulario.append("email", dados.email.trim());
+        formulario.append("telefone", dados.telefone.trim());
+        formulario.append("cpf", dados.cpf.trim());
+        if (foto) formulario.append("foto", foto);
+
+        try {
+            const resposta = await apiRequest<PerfilResposta>("/conta/perfil", {
+                method: "POST",
+                body: formulario,
+            });
+            setDados({
+                name: resposta.user.name,
+                email: resposta.user.email,
+                telefone: resposta.user.telefone ?? "",
+                cpf: resposta.user.cpf ?? "",
+            });
+            setPreview(resposta.user.fotoUrl);
+            setFoto(null);
+            setMensagem(resposta.message);
+        } catch (error) {
+            setErro(
+                error instanceof ApiError
+                    ? Object.values(error.errors).flat()[0] ?? error.message
+                    : "Não foi possível atualizar o perfil.",
+            );
+        } finally {
+            setSalvando(false);
         }
-
-        return numeros
-            .replace(/^(\d{2})(\d)/, "($1) $2")
-            .replace(/(\d{5})(\d)/, "$1-$2");
     };
-
-    /**
-     * Aplica a máscara visual do CPF.
-     */
-    const formatarCpf = (valor: string) =>
-        valor
-            .replace(/\D/g, "")
-            .slice(0, 11)
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 
     return (
         <section className="p-4 sm:p-6 xl:p-10">
-            <button
-                type="button"
-                onClick={onVoltar}
-                className="
-                    group mb-6 inline-flex
-                    items-center gap-2
-                    text-sm font-bold
-                    text-white/50
-                    transition-colors
-                    hover:text-brand
-                "
-            >
-                <ChevronRight className="h-4 w-4 rotate-180 transition-transform group-hover:-translate-x-1" />
-                Voltar para configurações
-            </button>
+            <div className="mx-auto max-w-5xl">
+                <button type="button" onClick={onVoltar} className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-white/60 hover:text-brand">
+                    <ChevronRight className="h-4 w-4 rotate-180" />
+                    Voltar para configurações
+                </button>
 
-            <div className="mb-8">
-                <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brand">
-                    Dados pessoais
-                </p>
+                <header className="mb-8">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-brand">Dados pessoais</p>
+                    <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Perfil</h1>
+                    <p className="mt-2 max-w-2xl font-medium text-white/50">Atualize as informações usadas para identificar sua conta.</p>
+                </header>
 
-                <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                    Perfil
-                </h1>
-
-                <p className="mt-2 max-w-2xl font-medium text-white/50">
-                    Atualize sua foto e as informações utilizadas para
-                    identificar sua conta.
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[18rem_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
-                    <div
-                        className="
-                            mx-auto flex h-24 w-24
-                            items-center justify-center
-                            overflow-hidden rounded-3xl
-                            bg-brand/10 text-brand
-                        "
-                    >
-                        {imagemPerfilPreview ? (
-                            <img
-                                src={imagemPerfilPreview}
-                                alt="Prévia da foto de perfil"
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <UserRound className="h-14 w-14 text-brand" />
-                        )}
+                <form onSubmit={salvar} className="grid gap-6 xl:grid-cols-[18rem_1fr]">
+                    <div className="h-fit rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
+                        <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-brand/10 text-brand">
+                            {preview ? <img src={preview} alt="Foto de perfil" className="h-full w-full object-cover" /> : <UserRound className="h-14 w-14" />}
+                        </div>
+                        <input ref={fotoRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => selecionarFoto(event.target.files?.[0])} />
+                        <button type="button" onClick={() => fotoRef.current?.click()} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-bold text-white hover:bg-white/10">
+                            <Camera className="h-4 w-4" /> Alterar foto
+                        </button>
+                        <p className="mt-3 text-xs text-white/40">PNG, JPG ou WebP · até 5 MB</p>
                     </div>
 
-                    <h2 className="mt-4 text-lg font-bold text-white">
-                        Foto do perfil
-                    </h2>
+                    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-7">
+                        <div className="grid gap-5 md:grid-cols-2">
+                            <Campo rotulo="Nome completo"><input required minLength={3} maxLength={100} value={dados.name} onChange={(event) => setDados((atual) => ({ ...atual, name: event.target.value }))} autoComplete="name" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-brand" /></Campo>
+                            <Campo rotulo="E-mail"><input required type="email" maxLength={254} value={dados.email} onChange={(event) => setDados((atual) => ({ ...atual, email: event.target.value }))} autoComplete="email" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-brand" /></Campo>
+                            <Campo rotulo="Telefone"><input type="tel" maxLength={15} value={dados.telefone} onChange={(event) => setDados((atual) => ({ ...atual, telefone: formatarTelefone(event.target.value) }))} placeholder="(00) 00000-0000" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-brand" /></Campo>
+                            <Campo rotulo="CPF"><input maxLength={14} value={dados.cpf} onChange={(event) => setDados((atual) => ({ ...atual, cpf: formatarCpf(event.target.value) }))} placeholder="000.000.000-00" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-brand" /></Campo>
+                        </div>
 
-                    <p className="mt-1 text-sm leading-relaxed text-white/50">
-                        Utilize uma imagem nítida para facilitar sua
-                        identificação.
-                    </p>
+                        {erro && <p role="alert" className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400">{erro}</p>}
+                        {mensagem && <p role="status" className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-400">{mensagem}</p>}
 
-                    {/*
-                     * Campo oculto utilizado somente para
-                     * abrir o seletor de imagens.
-                     *
-                     * A persistência da foto será conectada
-                     * ao armazenamento do servidor futuramente.
-                     */}
-                    <input
-                        ref={inputImagemPerfilRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        className="hidden"
-                        onChange={(event) =>
-                            selecionarImagemPerfil(
-                                event.target.files?.[0],
-                                event.currentTarget,
-                            )
-                        }
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() => inputImagemPerfilRef.current?.click()}
-                        className="
-                            mt-5 w-full rounded-xl
-                            bg-brand px-5 py-3
-                            font-bold text-slate-950
-                            transition-all
-                            hover:brightness-110
-                        "
-                    >
-                        Alterar foto
-                    </button>
-
-                    {erroImagemPerfil && (
-                        <p
-                            className="mt-3 text-sm font-semibold text-red-400"
-                            role="alert"
-                        >
-                            {erroImagemPerfil}
-                        </p>
-                    )}
-                </div>
-
-                <form
-                    onSubmit={(event) => {
-                        event.preventDefault();
-
-                        if (!event.currentTarget.checkValidity()) {
-                            event.currentTarget.reportValidity();
-                            return;
-                        }
-
-                        setMensagemSalvamento(
-                            "Alterações validadas. O salvamento definitivo será conectado ao servidor.",
-                        );
-
-                        window.setTimeout(() => {
-                            setMensagemSalvamento("");
-                        }, 4000);
-                    }}
-                    className="
-                        rounded-3xl border
-                        border-white/10 bg-white/5
-                        p-5 sm:p-6
-                    "
-                >
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        <label className="space-y-2">
-                            <span className="text-sm font-bold text-white">
-                                Nome completo
-                            </span>
-
-                            <input
-                                type="text"
-                                defaultValue={user.name}
-                                minLength={3}
-                                maxLength={100}
-                                autoComplete="name"
-                                className="
-                                    w-full rounded-xl
-                                    border border-white/10
-                                    bg-white/5
-                                    px-4 py-3 text-white
-                                    outline-none
-                                    transition-colors
-                                    focus:border-brand
-                                "
-                            />
-                        </label>
-
-                        <label className="space-y-2">
-                            <span className="text-sm font-bold text-white">
-                                E-mail
-                            </span>
-
-                            <input
-                                type="email"
-                                defaultValue={user.email}
-                                maxLength={254}
-                                autoComplete="email"
-                                className="
-                                    w-full rounded-xl
-                                    border border-white/10
-                                    bg-white/5
-                                    px-4 py-3 text-white
-                                    outline-none
-                                    transition-colors
-                                    focus:border-brand
-                                "
-                            />
-                        </label>
-
-                        <label className="space-y-2">
-                            <span className="text-sm font-bold text-white">
-                                Telefone
-                            </span>
-
-                            <input
-                                type="tel"
-                                placeholder="(00) 00000-0000"
-                                inputMode="numeric"
-                                minLength={14}
-                                maxLength={15}
-                                autoComplete="tel"
-                                onInput={(event) => {
-                                    event.currentTarget.value =
-                                        formatarTelefone(
-                                            event.currentTarget.value,
-                                        );
-                                }}
-                                className="
-                                    w-full rounded-xl
-                                    border border-white/10
-                                    bg-white/5
-                                    px-4 py-3 text-white
-                                    outline-none
-                                    transition-colors
-                                    focus:border-brand
-                                "
-                            />
-                        </label>
-
-                        <label className="space-y-2">
-                            <span className="text-sm font-bold text-white">
-                                CPF
-                            </span>
-
-                            <input
-                                type="text"
-                                defaultValue={user.cpf}
-                                inputMode="numeric"
-                                minLength={14}
-                                maxLength={14}
-                                autoComplete="off"
-                                onInput={(event) => {
-                                    event.currentTarget.value = formatarCpf(
-                                        event.currentTarget.value,
-                                    );
-                                }}
-                                className="
-                                    w-full rounded-xl
-                                    border border-white/10
-                                    bg-white/5
-                                    px-4 py-3 text-white
-                                    outline-none
-                                    transition-colors
-                                    focus:border-brand
-                                "
-                            />
-                        </label>
-                    </div>
-
-                    <div className="mt-2 flex flex-col gap-4 md:col-span-2">
-                        {mensagemSalvamento && (
-                            <p
-                                className="
-                                    w-full rounded-xl
-                                    border
-                                    border-emerald-500/30
-                                    bg-emerald-500/10
-                                    px-4 py-3
-                                    text-sm font-semibold
-                                    text-emerald-500
-                                "
-                                role="status"
-                                aria-live="polite"
-                            >
-                                {mensagemSalvamento}
-                            </p>
-                        )}
-
-                        <div className="flex justify-end">
-                            <button
-                                type="submit"
-                                className="
-                                    w-full rounded-xl
-                                    bg-brand px-6 py-3
-                                    font-bold text-slate-950
-                                    transition-all duration-200
-                                    hover:brightness-110
-                                    hover:shadow-lg
-                                    focus-visible:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-brand
-                                    focus-visible:ring-offset-2
-                                    sm:w-auto sm:min-w-52
-                                "
-                            >
-                                Salvar alterações
+                        <div className="mt-6 flex justify-end">
+                            <button type="submit" disabled={salvando} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-bold text-white hover:bg-brand/90 disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+                                {salvando && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                                {salvando ? "Salvando..." : "Salvar alterações"}
                             </button>
                         </div>
                     </div>
@@ -378,4 +157,8 @@ export default function PerfilCliente({ user, onVoltar }: PerfilClienteProps) {
             </div>
         </section>
     );
+}
+
+function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+    return <label className="space-y-2"><span className="text-sm font-bold text-white">{rotulo}</span>{children}</label>;
 }

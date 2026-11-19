@@ -14,6 +14,8 @@ export interface User {
     cpf?: string;
     cnpj?: string;
     crc?: string;
+    telefone?: string;
+    fotoUrl?: string | null;
 }
 
 export interface Service {

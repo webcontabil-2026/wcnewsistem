@@ -92,10 +92,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         className="wc-interactive flex items-center gap-3 rounded-xl"
                         aria-label="Ir para a página inicial da WebContabil"
                     >
-                        <BrandLogo
-    size="header"
-    className="shadow-lg shadow-brand/40"
-/>
+                        <BrandLogo size="header" />
 
                         <span className="text-xl font-bold tracking-tight theme-text-high">
                             WebContabil

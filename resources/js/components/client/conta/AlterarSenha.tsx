@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import CampoSenha from "./CampoSenha";
+import { ApiError, apiRequest } from "../../../lib/api";
 
 interface AlterarSenhaProps {
     onVoltar: () => void;
@@ -17,6 +18,7 @@ export default function AlterarSenha({ onVoltar }: AlterarSenhaProps) {
 
     const [mensagemSenha, setMensagemSenha] = useState("");
     const [erroSenha, setErroSenha] = useState("");
+    const [salvando, setSalvando] = useState(false);
 
     /**
      * Remove mensagens anteriores quando o usuário
@@ -27,7 +29,7 @@ export default function AlterarSenha({ onVoltar }: AlterarSenhaProps) {
         setErroSenha("");
     };
 
-    const alterarSenha = (event: FormEvent<HTMLFormElement>) => {
+    const alterarSenha = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         limparMensagens();
@@ -50,20 +52,34 @@ export default function AlterarSenha({ onVoltar }: AlterarSenhaProps) {
             return;
         }
 
-        /*
-         * TODO:
-         * validar a senha atual no servidor,
-         * salvar a nova senha,
-         * invalidar sessões antigas
-         * e registrar a alteração.
-         */
-        setMensagemSenha(
-            "Senha validada. A alteração definitiva será conectada ao servidor.",
-        );
+        setSalvando(true);
 
-        setSenhaAtual("");
-        setNovaSenha("");
-        setConfirmacaoSenha("");
+        try {
+            const resposta = await apiRequest<{ message: string }>(
+                "/conta/senha",
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        senhaAtual,
+                        novaSenha,
+                        novaSenha_confirmation: confirmacaoSenha,
+                    }),
+                },
+            );
+
+            setMensagemSenha(resposta.message);
+            setSenhaAtual("");
+            setNovaSenha("");
+            setConfirmacaoSenha("");
+        } catch (error) {
+            setErroSenha(
+                error instanceof ApiError
+                    ? Object.values(error.errors).flat()[0] ?? error.message
+                    : "Não foi possível alterar a senha.",
+            );
+        } finally {
+            setSalvando(false);
+        }
     };
 
     return (
@@ -191,6 +207,7 @@ export default function AlterarSenha({ onVoltar }: AlterarSenhaProps) {
                         <div className="flex justify-end">
                             <button
                                 type="submit"
+                                disabled={salvando}
                                 className="
                                     w-full rounded-2xl
                                     bg-brand px-6 py-3
@@ -202,7 +219,7 @@ export default function AlterarSenha({ onVoltar }: AlterarSenhaProps) {
                                     sm:w-auto
                                 "
                             >
-                                Alterar senha
+                                {salvando ? "Alterando..." : "Alterar senha"}
                             </button>
                         </div>
                     </div>

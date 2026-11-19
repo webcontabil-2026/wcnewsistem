@@ -128,14 +128,10 @@
                 </h2>
 
                 <p class="mb-8 mt-2 theme-text-low">
-                    Preencha seus dados para simular uma solicitação
+                    Preencha seus dados para enviar uma solicitação
                     de contato.
                 </p>
 
-                {{--
-                    O envio é demonstrativo nesta etapa.
-                    O JavaScript impede qualquer transmissão dos dados.
-                --}}
                 <form
                     id="contact-form"
                     class="grid grid-cols-1 gap-x-6 gap-y-7
@@ -390,8 +386,8 @@ maxlength="15"
                         </button>
 
                         <p class="text-xs leading-relaxed theme-text-low">
-                            Formulário demonstrativo: nenhum dado será
-                            enviado ou armazenado nesta versão.
+                            Seus dados serão usados somente para responder a
+                            esta solicitação, conforme nossa Política de Privacidade.
                         </p>
                     </div>
                 </form>
@@ -402,8 +398,7 @@ maxlength="15"
 
 <script>
     /*
-     * Controla o perfil, as máscaras e a simulação segura
-     * do formulário sem transmitir ou armazenar informações.
+     * Controla o perfil, as máscaras e o envio seguro ao Laravel.
      */
     (function () {
         const form = document.getElementById('contact-form');
@@ -585,7 +580,7 @@ maxlength="15"
             phoneInput.setCustomValidity('');
         });
 
-        form.addEventListener('submit', function (event) {
+        form.addEventListener('submit', async function (event) {
             event.preventDefault();
 
             /*
@@ -651,23 +646,62 @@ maxlength="15"
                 return;
             }
 
-            /*
-             * Simula o processamento sem enviar os dados preenchidos.
-             */
             submitButton.disabled = true;
             submitLabel.textContent = 'Processando...';
             feedback.dataset.visible = 'false';
             feedback.textContent = '';
 
-            window.setTimeout(function () {
+            try {
+                const csrfToken = document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content') || '';
+
+                const response = await fetch('/contato', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                });
+
+                const data = await response.json().catch(function () {
+                    return {};
+                });
+
+                if (!response.ok) {
+                    const validationMessage = data.errors
+                        ? Object.values(data.errors).flat()[0]
+                        : null;
+
+                    throw new Error(
+                        validationMessage ||
+                        data.message ||
+                        'Não foi possível enviar o contato.'
+                    );
+                }
+
+                form.reset();
+                profileInput.value = '';
+                documentField.hidden = true;
+                documentInput.disabled = true;
+                profileOptions.forEach(function (option) {
+                    option.setAttribute('aria-pressed', 'false');
+                });
+
+                showFeedback('success', data.message);
+            } catch (error) {
+                showFeedback(
+                    'error',
+                    error instanceof Error
+                        ? error.message
+                        : 'Não foi possível enviar o contato.'
+                );
+            } finally {
                 submitButton.disabled = false;
                 submitLabel.textContent = 'Enviar interesse';
-
-                showFeedback(
-                    'success',
-                    'Simulação concluída! Nenhum dado foi enviado nesta versão.'
-                );
-            }, 800);
+            }
         });
 
         /*

@@ -1,19 +1,20 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\LancamentoFinanceiroController;
+use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\PreferenciaUsuarioController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ServicoController;
 use App\Http\Controllers\SolicitacaoController;
+use App\Http\Controllers\ContaController;
+use App\Http\Controllers\ContatoController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Rotas públicas da aplicação
+| Páginas públicas
 |--------------------------------------------------------------------------
-|
-| Estas rotas carregam as principais páginas públicas do sistema.
-|
 */
 
 Route::view('/', 'landing');
@@ -21,211 +22,168 @@ Route::view('/sobre', 'sobre');
 Route::view('/servicos', 'servicos');
 Route::view('/planos', 'planos');
 Route::view('/contato', 'contato');
+Route::post(
+    '/contato',
+    [ContatoController::class, 'enviar'],
+)->middleware('throttle:5,10');
 Route::view('/politica-de-privacidade', 'privacidade');
 Route::view('/termos-de-uso', 'termos');
-/*
- * Páginas de autenticação.
- *
- * O nome "login" é utilizado pelo middleware de autenticação para
- * redirecionar usuários que tentarem acessar uma área protegida.
- */
-Route::view('/login', 'login')
-    ->name('login');
 
-Route::view('/register', 'register')
-    ->name('register');
-
-/*
- * O dashboard somente pode ser carregado por usuários que possuam
- * uma sessão autenticada no Laravel.
- */
+Route::view('/login', 'login')->name('login');
+Route::view('/register', 'register')->name('register');
 Route::view('/dashboard', 'dashboard')
     ->middleware('auth')
     ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
-| Rotas de autenticação
+| Autenticação
 |--------------------------------------------------------------------------
-|
-| Cadastro e login são públicos.
-| Consulta do usuário autenticado e logout exigem sessão ativa.
-|
 */
 
 Route::prefix('auth')->group(function () {
-    /*
-     * Cadastro de novos clientes e contadores.
-     * O throttle reduz tentativas automatizadas em excesso.
-     */
     Route::post(
         '/register',
-        [AutenticacaoController::class, 'register']
+        [AutenticacaoController::class, 'register'],
     )->middleware('throttle:10,1');
 
-    /*
-     * Realiza a autenticação do usuário.
-     */
     Route::post(
         '/login',
-        [AutenticacaoController::class, 'login']
+        [AutenticacaoController::class, 'login'],
     )->middleware('throttle:6,1');
 
-    /*
-     * Rotas disponíveis somente para usuários autenticados.
-     */
     Route::middleware('auth')->group(function () {
-        /*
-         * Retorna os dados do usuário da sessão atual.
-         */
         Route::get(
             '/current',
-            [AutenticacaoController::class, 'current']
+            [AutenticacaoController::class, 'current'],
         );
 
-        /*
-         * Encerra a sessão atual.
-         */
         Route::post(
             '/logout',
-            [AutenticacaoController::class, 'logout']
+            [AutenticacaoController::class, 'logout'],
         );
     });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Preferências do usuário
+| Preferências e finanças do usuário autenticado
 |--------------------------------------------------------------------------
-|
-| Permite consultar e atualizar as preferências do usuário autenticado.
-|
 */
 
 Route::middleware('auth')->group(function () {
-    /*
-     * Retorna as preferências salvas do usuário autenticado.
-     */
     Route::get(
         '/preferencias',
-        [PreferenciaUsuarioController::class, 'show']
+        [PreferenciaUsuarioController::class, 'show'],
     );
 
-    /*
-     * Atualiza tema e preferências de notificações.
-     */
     Route::put(
         '/preferencias',
-        [PreferenciaUsuarioController::class, 'update']
+        [PreferenciaUsuarioController::class, 'update'],
     );
+
+    Route::post(
+        '/conta/perfil',
+        [ContaController::class, 'atualizarPerfil'],
+    );
+
+    Route::put(
+        '/conta/senha',
+        [ContaController::class, 'alterarSenha'],
+    )->middleware('throttle:6,1');
+
+    Route::post(
+        '/conta/desativacao/solicitar',
+        [ContaController::class, 'solicitarDesativacao'],
+    )->middleware('throttle:3,10');
+
+    Route::post(
+        '/conta/desativacao/confirmar',
+        [ContaController::class, 'confirmarDesativacao'],
+    )->middleware('throttle:3,10');
+
+    Route::prefix('financial-entries')->group(function () {
+        Route::get(
+            '/',
+            [LancamentoFinanceiroController::class, 'index'],
+        );
+
+        Route::post(
+            '/',
+            [LancamentoFinanceiroController::class, 'store'],
+        );
+
+        Route::get(
+            '/{financialEntry}/attachment',
+            [LancamentoFinanceiroController::class, 'downloadAttachment'],
+        )->whereNumber('financialEntry');
+
+        Route::delete(
+            '/{financialEntry}',
+            [LancamentoFinanceiroController::class, 'destroy'],
+        )->whereNumber('financialEntry');
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Rotas financeiras
+| API do painel
 |--------------------------------------------------------------------------
-|
-| Todas as rotas deste grupo exigem autenticação.
-| O controller garante que cada cliente acesse somente os próprios
-| lançamentos e documentos.
-|
-*/
-
-Route::middleware('auth')
-    ->prefix('financial-entries')
-    ->group(function () {
-        /*
-         * Lista os lançamentos financeiros do cliente autenticado.
-         */
-        Route::get(
-            '/',
-            [LancamentoFinanceiroController::class, 'index']
-        );
-
-        /*
-         * Cria um novo lançamento financeiro.
-         *
-         * Também pode receber um comprovante através do campo
-         * "attachment", que será armazenado de forma privada.
-         */
-        Route::post(
-            '/',
-            [LancamentoFinanceiroController::class, 'store']
-        );
-
-        /*
-         * Faz o download protegido do comprovante relacionado
-         * a um lançamento financeiro.
-         */
-        Route::get(
-            '/{financialEntry}/attachment',
-            [LancamentoFinanceiroController::class, 'downloadAttachment']
-        )->whereNumber('financialEntry');
-
-        /*
-         * Exclui um lançamento financeiro do cliente autenticado.
-         *
-         * Caso existam documentos vinculados, o controller também
-         * remove os registros e arquivos físicos correspondentes.
-         */
-        Route::delete(
-            '/{financialEntry}',
-            [LancamentoFinanceiroController::class, 'destroy']
-        )->whereNumber('financialEntry');
-    });
-/*
-|--------------------------------------------------------------------------
-| Catálogo de serviços e solicitações
-|--------------------------------------------------------------------------
-|
-| Rotas autenticadas responsáveis pelo catálogo e pelo fluxo entre
-| clientes e contadores.
-|
 */
 
 Route::middleware('auth')
     ->prefix('api')
     ->group(function () {
-        /*
-         * Retorna o catálogo de serviços disponíveis.
-         */
         Route::get(
             '/servicos',
             [ServicoController::class, 'listar'],
         );
 
-        /*
-         * Lista as solicitações permitidas para o usuário autenticado.
-         */
         Route::get(
             '/solicitacoes',
             [SolicitacaoController::class, 'listar'],
         );
 
-        /*
-         * Cria uma solicitação para o cliente autenticado.
-         */
         Route::post(
             '/solicitacoes',
             [SolicitacaoController::class, 'criar'],
         )->middleware('throttle:10,1');
 
-        /*
-         * Permite que o contador envie ou atualize um orçamento.
-         */
         Route::patch(
             '/solicitacoes/{solicitacao}/orcamento',
             [SolicitacaoController::class, 'enviarOrcamento'],
         )
             ->whereNumber('solicitacao')
             ->middleware('throttle:10,1');
-        /*
- * Permite que o cliente aceite ou recuse o orçamento recebido.
- */
-Route::patch(
-    '/solicitacoes/{solicitacao}/resposta',
-    [SolicitacaoController::class, 'responderOrcamento'],
-)
-    ->whereNumber('solicitacao')
-    ->middleware('throttle:10,1');
+
+        Route::patch(
+            '/solicitacoes/{solicitacao}/resposta',
+            [SolicitacaoController::class, 'responderOrcamento'],
+        )
+            ->whereNumber('solicitacao')
+            ->middleware('throttle:10,1');
+
+        Route::patch(
+            '/solicitacoes/{solicitacao}/status',
+            [SolicitacaoController::class, 'atualizarStatus'],
+        )
+            ->whereNumber('solicitacao')
+            ->middleware('throttle:20,1');
+
+        Route::get(
+            '/solicitacoes/{solicitacao}/mensagens',
+            [MensagemController::class, 'listar'],
+        )->whereNumber('solicitacao');
+
+        Route::post(
+            '/solicitacoes/{solicitacao}/mensagens',
+            [MensagemController::class, 'enviar'],
+        )
+            ->whereNumber('solicitacao')
+            ->middleware('throttle:30,1');
+
+        Route::get(
+            '/admin/resumo',
+            [AdminController::class, 'resumo'],
+        );
     });

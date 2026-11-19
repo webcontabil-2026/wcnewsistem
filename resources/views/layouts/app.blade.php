@@ -92,8 +92,7 @@
                 aria-label="Ir para a página inicial da WebContabil"
             >
                 <div
-                    class="brand-bg-square flex items-center justify-center
-                           shadow-lg shadow-brand/40"
+                    class="brand-bg-square flex items-center justify-center"
                 >
                     <span
                         class="header-logo"

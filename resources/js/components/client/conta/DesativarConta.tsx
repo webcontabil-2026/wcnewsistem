@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { AlertTriangle, ChevronRight, ExternalLink } from "lucide-react";
+import { ApiError, apiRequest } from "../../../lib/api";
 
 interface DesativarContaProps {
     onVoltar: () => void;
@@ -8,8 +9,8 @@ interface DesativarContaProps {
 /**
  * Tela de solicitação de desativação da conta.
  *
- * A remoção definitiva ainda será conectada
- * ao servidor e ao fluxo de confirmação por e-mail.
+ * A conta é bloqueada no servidor sem remover registros
+ * que possam estar sujeitos a prazos legais de retenção.
  */
 export default function DesativarConta({ onVoltar }: DesativarContaProps) {
     const [senhaExclusao, setSenhaExclusao] = useState("");
@@ -17,24 +18,27 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
 
     const [mensagemExclusao, setMensagemExclusao] = useState("");
     const [erroExclusao, setErroExclusao] = useState("");
+    const [processando, setProcessando] = useState(false);
+    const [aguardandoCodigo, setAguardandoCodigo] = useState(false);
+    const [codigo, setCodigo] = useState("");
 
     const limparMensagens = () => {
         setMensagemExclusao("");
         setErroExclusao("");
     };
 
-    const solicitarDesativacao = (event: FormEvent<HTMLFormElement>) => {
+    const solicitarDesativacao = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         limparMensagens();
 
-        if (!senhaExclusao.trim()) {
+        if (!aguardandoCodigo && !senhaExclusao.trim()) {
             setErroExclusao("Digite sua senha para continuar.");
 
             return;
         }
 
-        if (!confirmacaoExclusao) {
+        if (!aguardandoCodigo && !confirmacaoExclusao) {
             setErroExclusao(
                 "Você precisa marcar a confirmação antes de continuar.",
             );
@@ -42,16 +46,58 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
             return;
         }
 
-        /*
-         * TODO:
-         * 1. validar senha no servidor;
-         * 2. enviar código por e-mail;
-         * 3. registrar a solicitação;
-         * 4. aplicar prazos legais de retenção.
-         */
-        setMensagemExclusao(
-            "Solicitação validada. A confirmação por e-mail e a desativação definitiva serão conectadas ao servidor futuramente.",
-        );
+        if (aguardandoCodigo && !/^\d{6}$/.test(codigo)) {
+            setErroExclusao("Digite o código de 6 dígitos enviado por e-mail.");
+            return;
+        }
+
+        setProcessando(true);
+
+        try {
+            if (!aguardandoCodigo) {
+                const resposta = await apiRequest<{
+                    message: string;
+                    codigoDesenvolvimento?: string | null;
+                }>("/conta/desativacao/solicitar", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        senha: senhaExclusao,
+                        confirmacao: confirmacaoExclusao,
+                    }),
+                });
+
+                setAguardandoCodigo(true);
+                setMensagemExclusao(
+                    resposta.codigoDesenvolvimento
+                        ? `${resposta.message} Código local: ${resposta.codigoDesenvolvimento}`
+                        : resposta.message,
+                );
+            } else {
+                const confirmar = window.confirm(
+                    "Confirma a desativação? Você será desconectado ao concluir.",
+                );
+
+                if (!confirmar) return;
+
+                const resposta = await apiRequest<{ message: string }>(
+                    "/conta/desativacao/confirmar",
+                    {
+                        method: "POST",
+                        body: JSON.stringify({ codigo }),
+                    },
+                );
+                setMensagemExclusao(resposta.message);
+                window.setTimeout(() => window.location.replace("/"), 900);
+            }
+        } catch (error) {
+            setErroExclusao(
+                error instanceof ApiError
+                    ? Object.values(error.errors).flat()[0] ?? error.message
+                    : "Não foi possível desativar a conta.",
+            );
+        } finally {
+            setProcessando(false);
+        }
     };
 
     return (
@@ -114,6 +160,7 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
                     className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8"
                     onSubmit={solicitarDesativacao}
                 >
+                    {!aguardandoCodigo && (<>
                     <div>
                         <h2 className="text-xl font-bold text-white">
                             Confirme sua solicitação
@@ -236,6 +283,38 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
                             contábeis.
                         </span>
                     </label>
+                    </>)}
+
+                    {aguardandoCodigo && (
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                            <label
+                                htmlFor="account-deletion-code"
+                                className="mb-2 block text-sm font-bold text-white"
+                            >
+                                Código de confirmação
+                            </label>
+                            <p className="mb-4 text-sm text-white/60">
+                                Digite o código de 6 dígitos enviado para o
+                                e-mail cadastrado. Ele expira em 15 minutos.
+                            </p>
+                            <input
+                                id="account-deletion-code"
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                value={codigo}
+                                onChange={(event) => {
+                                    setCodigo(
+                                        event.target.value
+                                            .replace(/\D/g, "")
+                                            .slice(0, 6),
+                                    );
+                                    setErroExclusao("");
+                                }}
+                                maxLength={6}
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center text-2xl font-black tracking-[0.4em] text-white outline-none focus:border-red-400"
+                            />
+                        </div>
+                    )}
 
                     {erroExclusao && (
                         <div
@@ -272,7 +351,11 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
                         <button
                             type="submit"
                             disabled={
-                                !senhaExclusao.trim() || !confirmacaoExclusao
+                                processando ||
+                                (!aguardandoCodigo &&
+                                    (!senhaExclusao.trim() ||
+                                        !confirmacaoExclusao)) ||
+                                (aguardandoCodigo && codigo.length !== 6)
                             }
                             className="
                                 w-full rounded-2xl
@@ -289,7 +372,11 @@ export default function DesativarConta({ onVoltar }: DesativarContaProps) {
                                 sm:w-auto
                             "
                         >
-                            Solicitar desativação da conta
+                            {processando
+                                ? "Processando..."
+                                : aguardandoCodigo
+                                  ? "Confirmar e desativar"
+                                  : "Enviar código por e-mail"}
                         </button>
                     </div>
                 </form>

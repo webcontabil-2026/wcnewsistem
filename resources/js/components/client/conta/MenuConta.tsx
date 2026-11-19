@@ -118,11 +118,12 @@ export default function MenuConta({
                 <div className="mt-6 rounded-3xl border border-brand/30 bg-brand/10 p-5">
                     <p className="text-sm leading-relaxed text-white/70">
                         <strong className="text-white">
-                            Versão em desenvolvimento:
+                            Segurança da conta:
                         </strong>{" "}
-                        alterações de senha, códigos enviados por e-mail e
-                        solicitações relacionadas à conta serão conectados à
-                        autenticação e ao banco de dados futuramente.
+                        a troca de senha valida sua credencial atual no
+                        servidor. A desativação encerra a sessão e bloqueia
+                        novos acessos sem apagar imediatamente os registros
+                        sujeitos a obrigações legais.
                     </p>
                 </div>
             </div>
