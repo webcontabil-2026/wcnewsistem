@@ -31,6 +31,7 @@ Route::view('/termos-de-uso', 'termos');
 
 Route::view('/login', 'login')->name('login');
 Route::view('/register', 'register')->name('register');
+Route::view('/admin/login', 'admin-login')->name('admin.login');
 Route::view('/dashboard', 'dashboard')
     ->middleware('auth')
     ->name('dashboard');
@@ -51,6 +52,11 @@ Route::prefix('auth')->group(function () {
         '/login',
         [AutenticacaoController::class, 'login'],
     )->middleware('throttle:6,1');
+
+    Route::post(
+        '/admin-login',
+        [AutenticacaoController::class, 'adminLogin'],
+    )->middleware('throttle:5,5');
 
     Route::middleware('auth')->group(function () {
         Route::get(

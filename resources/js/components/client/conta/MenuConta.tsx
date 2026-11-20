@@ -15,7 +15,7 @@ export default function MenuConta({
     onAbrirExclusao,
 }: MenuContaProps) {
     return (
-        <section className="p-4 sm:p-6 xl:p-10">
+        <section className="min-h-0 flex-grow overflow-y-auto p-4 sm:p-6 xl:p-10">
             <div className="mx-auto max-w-5xl">
                 <button
                     type="button"

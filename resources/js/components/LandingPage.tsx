@@ -5,7 +5,16 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Cloud, Shield, Zap } from "lucide-react";
+import {
+    ArrowRight,
+    BarChart3,
+    Cloud,
+    FileCheck2,
+    MessageSquareText,
+    Shield,
+    X,
+    Zap,
+} from "lucide-react";
 import BrandLogo from "./BrandLogo";
 
 interface LandingPageProps {
@@ -32,6 +41,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
      * Controla a abertura do menu público em celulares.
      */
     const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
+    const [isDemoOpen, setIsDemoOpen] = useState(false);
 
     /*
      * Mantém o tema global sincronizado quando o usuário alterna sua escolha.
@@ -57,6 +67,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
         const closeMenuWithEscape = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setIsPublicMenuOpen(false);
+                setIsDemoOpen(false);
             }
         };
 
@@ -287,6 +298,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
 
                                 <button
                                     type="button"
+                                    onClick={() => setIsDemoOpen(true)}
                                     className="wc-interactive wc-button-secondary
                                                w-full rounded-2xl px-7 py-4
                                                text-base font-bold sm:w-auto
@@ -350,7 +362,7 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                     </p>
 
                     <nav
-                        className="flex items-center gap-6"
+                        className="flex flex-wrap items-center justify-center gap-6"
                         aria-label="Informações legais"
                     >
                         <a
@@ -368,9 +380,86 @@ export default function LandingPage({ onOpenAuth }: LandingPageProps) {
                         >
                             Termos
                         </a>
+
+                        <a
+                            href="/admin/login"
+                            className="wc-interactive wc-public-link text-xs font-bold uppercase tracking-widest"
+                        >
+                            Acesso interno
+                        </a>
                     </nav>
                 </div>
             </footer>
+
+            {isDemoOpen && (
+                <DemoModal
+                    onClose={() => setIsDemoOpen(false)}
+                    onCreateAccount={() => onOpenAuth("REGISTER")}
+                />
+            )}
+        </div>
+    );
+}
+
+function DemoModal({
+    onClose,
+    onCreateAccount,
+}: {
+    onClose: () => void;
+    onCreateAccount: () => void;
+}) {
+    const [step, setStep] = useState(0);
+    const steps = [
+        {
+            icon: <BarChart3 className="h-7 w-7" />,
+            title: "Visão financeira real",
+            description:
+                "Receitas, despesas, saldo e gráfico são atualizados pelos lançamentos cadastrados pelo cliente.",
+        },
+        {
+            icon: <FileCheck2 className="h-7 w-7" />,
+            title: "Solicitação e orçamento",
+            description:
+                "O cliente escolhe um serviço; o contador analisa, envia o orçamento e acompanha o processamento.",
+        },
+        {
+            icon: <MessageSquareText className="h-7 w-7" />,
+            title: "Conversa por atendimento",
+            description:
+                "Depois que o contador assume a solicitação, a conversa fica disponível aos dois perfis com histórico salvo.",
+        },
+    ];
+    const current = steps[step];
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true" aria-labelledby="demo-title">
+            <div className="theme-surface relative w-full max-w-2xl rounded-[32px] border p-6 theme-border sm:p-9">
+                <button type="button" onClick={onClose} className="wc-interactive !absolute right-4 top-4 rounded-xl p-2 theme-text-low" aria-label="Fechar demonstração">
+                    <X className="h-5 w-5" />
+                </button>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-brand">Demonstração guiada</p>
+                <h2 id="demo-title" className="mt-2 pr-10 text-3xl font-extrabold theme-text-high">Como a WebContabil funciona</h2>
+
+                <div className="mt-7 rounded-3xl border p-6 theme-border theme-surface-raised sm:p-8">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">{current.icon}</div>
+                    <p className="mt-6 text-xs font-bold uppercase tracking-widest text-brand">Etapa {step + 1} de {steps.length}</p>
+                    <h3 className="mt-2 text-2xl font-extrabold theme-text-high">{current.title}</h3>
+                    <p className="mt-3 leading-relaxed theme-text-low">{current.description}</p>
+                </div>
+
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex justify-center gap-2" aria-label="Progresso da demonstração">
+                        {steps.map((item, index) => (
+                            <button key={item.title} type="button" onClick={() => setStep(index)} className={`h-2.5 rounded-full transition-all ${index === step ? "w-8 bg-brand" : "w-2.5 theme-surface-muted"}`} aria-label={`Ir para etapa ${index + 1}`} />
+                        ))}
+                    </div>
+                    {step < steps.length - 1 ? (
+                        <button type="button" onClick={() => setStep((currentStep) => currentStep + 1)} className="wc-button-primary rounded-xl px-6 py-3 font-bold">Próxima etapa</button>
+                    ) : (
+                        <button type="button" onClick={onCreateAccount} className="wc-button-primary rounded-xl px-6 py-3 font-bold">Criar minha conta</button>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

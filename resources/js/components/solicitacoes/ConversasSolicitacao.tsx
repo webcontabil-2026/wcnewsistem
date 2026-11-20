@@ -57,8 +57,11 @@ export default function ConversasSolicitacao({
         }
     }, [disponiveis, selecionadaId]);
 
-    const carregarMensagens = async (solicitacaoId: number) => {
-        setCarregando(true);
+    const carregarMensagens = async (
+        solicitacaoId: number,
+        silencioso = false,
+    ) => {
+        if (!silencioso) setCarregando(true);
         setErro("");
 
         try {
@@ -73,13 +76,19 @@ export default function ConversasSolicitacao({
                     : "Não foi possível carregar a conversa.",
             );
         } finally {
-            setCarregando(false);
+            if (!silencioso) setCarregando(false);
         }
     };
 
     useEffect(() => {
         if (selecionadaId !== null) {
             void carregarMensagens(selecionadaId);
+
+            const intervalo = window.setInterval(() => {
+                void carregarMensagens(selecionadaId, true);
+            }, 15000);
+
+            return () => window.clearInterval(intervalo);
         }
     }, [selecionadaId]);
 
@@ -172,7 +181,7 @@ export default function ConversasSolicitacao({
                                         {selecionada?.servico.nome}
                                     </h2>
                                     <p className="truncate text-xs text-white/50">
-                                        Solicitação #{selecionada?.id}
+                                        Solicitação #{selecionada?.id} · atualização automática
                                     </p>
                                 </div>
                                 {selecionadaId && (
@@ -219,7 +228,8 @@ export default function ConversasSolicitacao({
 
                             {erro && <p role="alert" className="px-5 pb-2 text-sm font-semibold text-red-400">{erro}</p>}
 
-                            <form onSubmit={enviar} className="flex gap-3 border-t border-white/10 p-4">
+                            <form onSubmit={enviar} className="border-t border-white/10 p-4">
+                                <div className="flex gap-3">
                                 <label className="sr-only" htmlFor="mensagem-atendimento">Mensagem</label>
                                 <input
                                     id="mensagem-atendimento"
@@ -237,6 +247,8 @@ export default function ConversasSolicitacao({
                                 >
                                     {enviando ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                                 </button>
+                                </div>
+                                <p className="mt-1 text-right text-[10px] font-semibold text-white/40">{texto.length}/2000</p>
                             </form>
                         </div>
                     </div>

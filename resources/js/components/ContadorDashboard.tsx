@@ -23,6 +23,11 @@ import ThemeToggle from "./ThemeToggle";
 import SolicitacoesContador from "./contador/SolicitacoesContador";
 import useSolicitacoesContador from "./contador/useSolicitacoesContador";
 import ConversasSolicitacao from "./solicitacoes/ConversasSolicitacao";
+import ConfiguracoesCliente from "./client/ConfiguracoesCliente";
+import ContaCliente from "./client/ContaCliente";
+import PreferenciasCliente from "./client/PreferenciasCliente";
+import PrivacidadeCliente from "./client/PrivacidadeCliente";
+import PerfilContador from "./contador/PerfilContador";
 
 interface PropriedadesContadorDashboard {
     usuario: User;
@@ -72,7 +77,11 @@ export default function ContadorDashboard({
     usuario,
     aoSair,
 }: PropriedadesContadorDashboard) {
+    const [usuarioAtual, setUsuarioAtual] = useState(usuario);
     const [abaAtiva, setAbaAtiva] = useState<AbaContador>("inicio");
+    const [secaoConfiguracoes, setSecaoConfiguracoes] = useState<
+        "menu" | "perfil" | "preferencias" | "privacidade" | "conta"
+    >("menu");
     const [recolhida, setRecolhida] = useState(false);
     const [menuMovel, setMenuMovel] = useState(false);
 
@@ -106,6 +115,7 @@ export default function ContadorDashboard({
 
     const selecionarAba = (aba: AbaContador) => {
         setAbaAtiva(aba);
+        if (aba === "configuracoes") setSecaoConfiguracoes("menu");
         setMenuMovel(false);
     };
 
@@ -132,7 +142,7 @@ export default function ContadorDashboard({
             <aside
                 className={cn(
                     "hidden shrink-0 flex-col border-r border-white/10 bg-white/5 transition-[width] duration-300 lg:flex",
-                    recolhida ? "w-24" : "w-72",
+                    recolhida ? "w-24" : "w-80",
                 )}
             >
                 <div
@@ -140,7 +150,7 @@ export default function ContadorDashboard({
                         "flex min-h-24 items-center border-b border-white/10 px-5",
                         recolhida
                             ? "justify-center"
-                            : "justify-between gap-3",
+                            : "justify-between gap-2",
                     )}
                 >
                     <div
@@ -151,7 +161,7 @@ export default function ContadorDashboard({
                     >
                         <BrandLogo size="accountant" />
                         {!recolhida && (
-                            <span className="whitespace-nowrap text-lg font-extrabold tracking-tight text-white">
+                            <span className="whitespace-nowrap text-base font-extrabold tracking-tight text-white">
                                 WebContabil Worker
                             </span>
                         )}
@@ -160,10 +170,11 @@ export default function ContadorDashboard({
                         <button
                             type="button"
                             onClick={() => setRecolhida(true)}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white"
-                            aria-label="Recolher menu"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white/50 transition-colors hover:bg-white/5 hover:text-brand"
+                            aria-label="Recolher menu lateral"
+                            title="Recolher menu"
                         >
-                            <PanelLeftClose className="h-5 w-5" />
+                        <PanelLeftClose className="h-5 w-5" />
                         </button>
                     )}
                 </div>
@@ -172,8 +183,9 @@ export default function ContadorDashboard({
                     <button
                         type="button"
                         onClick={() => setRecolhida(false)}
-                        className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white"
-                        aria-label="Expandir menu"
+                        className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-xl text-white/50 transition-colors hover:bg-white/5 hover:text-brand"
+                        aria-label="Expandir menu lateral"
+                        title="Expandir menu"
                     >
                         <PanelLeftOpen className="h-5 w-5" />
                     </button>
@@ -245,26 +257,26 @@ export default function ContadorDashboard({
                             <Menu className="h-6 w-6" />
                         </button>
                         <span className="rounded-full border border-brand/30 bg-brand/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand">
-                            CRC: {usuario.crc || "Não informado"}
+                            CRC: {usuarioAtual.crc || "Não informado"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3 sm:gap-5">
                         <ThemeToggle />
                         <div className="hidden text-right sm:block">
                             <p className="text-sm font-extrabold text-white">
-                                {usuario.name}
+                                {usuarioAtual.name}
                             </p>
                             <p className="text-xs text-white/40">Contador</p>
                         </div>
                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 font-black text-white">
-                            {usuario.name.charAt(0).toUpperCase()}
+                            {usuarioAtual.name.charAt(0).toUpperCase()}
                         </div>
                     </div>
                 </header>
 
                 {abaAtiva === "inicio" && (
                     <PaginaInicialContador
-                        nome={usuario.name}
+                        nome={usuarioAtual.name}
                         resumo={resumo}
                         carregando={carregando}
                         onAtualizar={() => void carregar()}
@@ -309,8 +321,26 @@ export default function ContadorDashboard({
                     />
                 )}
 
-                {abaAtiva === "configuracoes" && (
-                    <ConfiguracoesContador usuario={usuario} />
+                {abaAtiva === "configuracoes" && secaoConfiguracoes === "menu" && (
+                    <ConfiguracoesCliente onSelecionarSecao={setSecaoConfiguracoes} />
+                )}
+                {abaAtiva === "configuracoes" && secaoConfiguracoes === "perfil" && (
+                    <PerfilContador
+                        user={usuarioAtual}
+                        onVoltar={() => setSecaoConfiguracoes("menu")}
+                        onAtualizado={(dados) =>
+                            setUsuarioAtual((atual) => ({ ...atual, ...dados }))
+                        }
+                    />
+                )}
+                {abaAtiva === "configuracoes" && secaoConfiguracoes === "preferencias" && (
+                    <PreferenciasCliente onVoltar={() => setSecaoConfiguracoes("menu")} />
+                )}
+                {abaAtiva === "configuracoes" && secaoConfiguracoes === "privacidade" && (
+                    <PrivacidadeCliente onVoltar={() => setSecaoConfiguracoes("menu")} />
+                )}
+                {abaAtiva === "configuracoes" && secaoConfiguracoes === "conta" && (
+                    <ContaCliente onVoltar={() => setSecaoConfiguracoes("menu")} />
                 )}
             </main>
         </div>
@@ -428,63 +458,6 @@ function PaginaInicialContador({
     );
 }
 
-function ConfiguracoesContador({ usuario }: { usuario: User }) {
-    return (
-        <section className="flex-grow overflow-y-auto p-4 sm:p-6 xl:p-10">
-            <div className="mx-auto max-w-4xl space-y-8">
-                <header>
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-brand">
-                        Conta profissional
-                    </p>
-                    <h1 className="mt-1 text-3xl font-extrabold text-white sm:text-4xl">
-                        Configurações
-                    </h1>
-                    <p className="mt-2 text-white/50">
-                        Consulte seus dados e escolha o tema mais confortável.
-                    </p>
-                </header>
-                <div className="grid gap-5 md:grid-cols-2">
-                    <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                        <h2 className="text-xl font-extrabold text-white">
-                            Perfil
-                        </h2>
-                        <dl className="mt-5 space-y-4 text-sm">
-                            <div>
-                                <dt className="font-bold text-white/40">Nome</dt>
-                                <dd className="mt-1 text-white">{usuario.name}</dd>
-                            </div>
-                            <div>
-                                <dt className="font-bold text-white/40">E-mail</dt>
-                                <dd className="mt-1 break-all text-white">
-                                    {usuario.email}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className="font-bold text-white/40">CRC</dt>
-                                <dd className="mt-1 text-white">
-                                    {usuario.crc || "Não informado"}
-                                </dd>
-                            </div>
-                        </dl>
-                    </article>
-                    <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                        <h2 className="text-xl font-extrabold text-white">
-                            Aparência
-                        </h2>
-                        <p className="mt-2 text-sm text-white/50">
-                            Alterne entre o tema claro e escuro. A preferência é
-                            mantida na sua conta.
-                        </p>
-                        <div className="mt-6">
-                            <ThemeToggle />
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-    );
-}
-
 function ItemNavegacao({
     ativo,
     recolhido,
@@ -515,7 +488,7 @@ function ItemNavegacao({
                       : "text-white/50 hover:bg-white/5 hover:text-white",
             )}
         >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
+            <span className="wc-sidebar-item-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
                 {icone}
             </span>
             {!recolhido && <span className="text-sm">{rotulo}</span>}

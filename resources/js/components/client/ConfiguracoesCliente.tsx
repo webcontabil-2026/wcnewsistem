@@ -22,7 +22,7 @@ export default function ConfiguracoesCliente({
     onSelecionarSecao,
 }: ConfiguracoesClienteProps) {
     return (
-        <section className="p-4 sm:p-6 xl:p-10">
+        <section className="min-h-0 flex-grow overflow-y-auto p-4 sm:p-6 xl:p-10">
             <div className="mb-8">
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brand">
                     Gestão da conta

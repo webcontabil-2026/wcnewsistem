@@ -198,7 +198,7 @@ export default function PreferenciasCliente({
     ];
 
     return (
-        <section className="p-4 sm:p-6 xl:p-10">
+        <section className="min-h-0 flex-grow overflow-y-auto p-4 sm:p-6 xl:p-10">
             <button
                 type="button"
                 onClick={onVoltar}

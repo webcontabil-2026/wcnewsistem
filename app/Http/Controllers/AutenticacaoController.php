@@ -23,19 +23,31 @@ class AutenticacaoController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        $request->merge([
+            'cpf' => $request->filled('cpf')
+                ? preg_replace('/\D/', '', (string) $request->input('cpf'))
+                : null,
+            'cnpj' => $request->filled('cnpj')
+                ? preg_replace('/\D/', '', (string) $request->input('cnpj'))
+                : null,
+            'crc' => $request->filled('crc')
+                ? strtoupper(trim((string) $request->input('crc')))
+                : null,
+        ]);
+
         $validated = $request->validate(
             [
                 'name' => [
                     'required',
                     'string',
-                    'max:255',
+                    'max:100',
                 ],
 
                 'email' => [
                     'required',
                     'string',
                     'email',
-                    'max:255',
+                    'max:254',
                     'unique:users,email',
                 ],
 
@@ -44,7 +56,7 @@ class AutenticacaoController extends Controller
                     'string',
                     'min:8',
                     'regex:/^(?=.*\p{L})(?=.*\d).+$/u',
-                    'max:255',
+                    'max:72',
                 ],
 
                 'role' => [
@@ -61,8 +73,7 @@ class AutenticacaoController extends Controller
                  */
                 'cpf' => [
                     'nullable',
-                    'string',
-                    'max:14',
+                    'digits:11',
                 ],
 
                 /*
@@ -74,7 +85,8 @@ class AutenticacaoController extends Controller
                     ),
                     'nullable',
                     'string',
-                    'max:30',
+                    'max:20',
+                    'regex:/^[A-Z0-9.\/-]+$/',
                     'unique:contadores,crc',
                 ],
 
@@ -85,21 +97,20 @@ class AutenticacaoController extends Controller
                 'razaoSocial' => [
                     'nullable',
                     'string',
-                    'max:255',
+                    'max:150',
                     'required_with:cnpj',
                 ],
 
                 'cnpj' => [
                     'nullable',
-                    'string',
-                    'max:18',
+                    'digits:14',
                     'required_with:razaoSocial',
                     'unique:empresas,cnpj',
                 ],
             ],
             [
                 'name.required' => 'Informe seu nome.',
-                'name.max' => 'O nome não pode ultrapassar 255 caracteres.',
+                'name.max' => 'O nome não pode ultrapassar 100 caracteres.',
 
                 'email.required' => 'Informe seu e-mail.',
                 'email.email' => 'Informe um endereço de e-mail válido.',
@@ -112,12 +123,15 @@ class AutenticacaoController extends Controller
                 'role.required' => 'Selecione o tipo de acesso.',
                 'role.in' => 'O tipo de acesso selecionado é inválido.',
 
-                'cpf.max' => 'O CPF deve ter no máximo 14 caracteres.',
+                'cpf.digits' => 'O CPF deve possuir exatamente 11 dígitos.',
 
                 'crc.required' => 'Informe o CRC do contador.',
                 'crc.unique' => 'Este CRC já está cadastrado.',
+                'crc.max' => 'O CRC não pode ultrapassar 20 caracteres.',
+                'crc.regex' => 'O CRC possui caracteres inválidos.',
 
                 'cnpj.unique' => 'Este CNPJ já está cadastrado.',
+                'cnpj.digits' => 'O CNPJ deve possuir exatamente 14 dígitos.',
                 'cnpj.required_with' => 'Informe o CNPJ da empresa.',
 
                 'razaoSocial.required_with' => 'Informe a razão social da empresa.',
@@ -249,10 +263,58 @@ class AutenticacaoController extends Controller
             ], 422);
         }
 
+        if ($request->user()?->role === 'ADMIN') {
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'message' => 'Use a entrada administrativa exclusiva.',
+            ], 422);
+        }
+
         $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Autenticação realizada com sucesso.',
+            'user' => $this->formatUser($request->user()),
+        ]);
+    }
+
+    /**
+     * Acesso administrativo separado do cadastro e login públicos.
+     * Além das credenciais pessoais, exige a chave privada do servidor.
+     */
+    public function adminLogin(Request $request): JsonResponse
+    {
+        $dados = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:254'],
+            'password' => ['required', 'string', 'max:72'],
+            'accessKey' => ['required', 'string', 'max:128'],
+        ]);
+
+        $chaveConfigurada = (string) config('webcontabil.admin_access_key', '');
+
+        if (
+            $chaveConfigurada === '' ||
+            !hash_equals($chaveConfigurada, $dados['accessKey']) ||
+            !Auth::attempt([
+                'email' => $dados['email'],
+                'password' => $dados['password'],
+                'role' => 'ADMIN',
+                'status' => 'ativo',
+            ])
+        ) {
+            return response()->json([
+                'message' => 'Credenciais administrativas inválidas.',
+            ], 422);
+        }
+
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => 'Acesso administrativo autorizado.',
             'user' => $this->formatUser($request->user()),
         ]);
     }

@@ -196,6 +196,16 @@ if (elementoRaiz) {
                     />
                 );
 
+            case "admin-login":
+                return (
+                    <AuthModal
+                        mode="LOGIN"
+                        adminOnly
+                        onClose={() => navegar("/")}
+                        onLogin={aoEntrar}
+                    />
+                );
+
             case "dashboard":
                 return <DashboardAutenticado />;
 
