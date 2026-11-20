@@ -18,6 +18,25 @@ class ContaController extends Controller
     {
         $usuario = $request->user();
         $cliente = $usuario->cliente;
+        $contador = $usuario->contador;
+
+        $request->merge([
+            'cpf' => $request->filled('cpf')
+                ? preg_replace('/\D/', '', (string) $request->input('cpf'))
+                : null,
+            'crc' => $request->filled('crc')
+                ? strtoupper(trim((string) $request->input('crc')))
+                : null,
+            'telefone' => $request->filled('telefone')
+                ? trim((string) $request->input('telefone'))
+                : null,
+        ]);
+
+        $regraCpfUnico = $contador
+            ? Rule::unique('contadores', 'cpf')->ignore($contador->id)
+            : ($cliente
+                ? Rule::unique('clientes', 'cpf')->ignore($cliente->id)
+                : Rule::unique('clientes', 'cpf'));
 
         $dados = $request->validate(
             [
@@ -31,11 +50,18 @@ class ContaController extends Controller
                 'telefone' => ['nullable', 'string', 'max:20'],
                 'cpf' => [
                     'nullable',
+                    'digits:11',
+                    $regraCpfUnico,
+                ],
+                'crc' => [
+                    Rule::requiredIf((bool) $contador),
+                    'nullable',
                     'string',
-                    'max:14',
-                    $cliente
-                        ? Rule::unique('clientes', 'cpf')->ignore($cliente->id)
-                        : Rule::unique('clientes', 'cpf'),
+                    'max:20',
+                    'regex:/^[A-Z0-9.\/-]+$/',
+                    $contador
+                        ? Rule::unique('contadores', 'crc')->ignore($contador->id)
+                        : Rule::unique('contadores', 'crc'),
                 ],
                 'foto' => [
                     'nullable',
@@ -46,7 +72,12 @@ class ContaController extends Controller
             ],
             [
                 'email.unique' => 'Este e-mail já pertence a outra conta.',
-                'cpf.unique' => 'Este CPF já pertence a outro cliente.',
+                'cpf.digits' => 'O CPF deve possuir exatamente 11 dígitos.',
+                'cpf.unique' => 'Este CPF já pertence a outra conta.',
+                'crc.required' => 'Informe o CRC profissional.',
+                'crc.unique' => 'Este CRC já pertence a outro contador.',
+                'crc.max' => 'O CRC não pode ultrapassar 20 caracteres.',
+                'crc.regex' => 'O CRC possui caracteres inválidos.',
                 'foto.image' => 'Selecione uma imagem válida.',
                 'foto.max' => 'A imagem deve possuir no máximo 5 MB.',
             ],
@@ -61,6 +92,14 @@ class ContaController extends Controller
             $cliente->update([
                 'telefone' => $dados['telefone'] ?? null,
                 'cpf' => $dados['cpf'] ?? null,
+            ]);
+        }
+
+        if ($contador) {
+            $contador->update([
+                'telefone' => $dados['telefone'] ?? null,
+                'cpf' => $dados['cpf'] ?? null,
+                'crc' => $dados['crc'],
             ]);
         }
 
@@ -83,8 +122,9 @@ class ContaController extends Controller
             'user' => [
                 'name' => $usuario->name,
                 'email' => $usuario->email,
-                'cpf' => $cliente?->cpf,
-                'telefone' => $cliente?->telefone,
+                'cpf' => $cliente?->cpf ?? $contador?->cpf,
+                'crc' => $contador?->crc,
+                'telefone' => $cliente?->telefone ?? $contador?->telefone,
                 'fotoUrl' => $usuario->foto_perfil
                     ? Storage::disk('public')->url($usuario->foto_perfil)
                     : null,

@@ -210,6 +210,10 @@ video {
     background-color: var(--theme-surface-muted) !important;
 }
 
+.theme-surface-raised {
+    background-color: var(--theme-surface-raised) !important;
+}
+
 .theme-border {
     border-color: var(--theme-border) !important;
 }
@@ -277,6 +281,20 @@ video {
 .system-layout textarea::placeholder {
     color: var(--theme-text-muted) !important;
     opacity: 1;
+}
+
+.wc-settings-input {
+    width: 100%;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.75rem;
+    background: var(--theme-control);
+    padding: 0.75rem 1rem;
+    color: var(--theme-text-primary);
+    outline: none;
+}
+
+.wc-settings-input:focus {
+    border-color: var(--theme-focus);
 }
 
 /* Os gráficos também consomem a paleta global, inclusive no modo claro. */
@@ -1107,7 +1125,7 @@ select.wc-form-field {
 .wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::before,
 .wc-public-menu-toggle[aria-expanded="true"] [data-public-menu-icon]::after {
     position: absolute;
-    top: 50%;
+    top: 1.5rem;
     left: 50%;
     width: 0.85rem;
     height: 2px;
@@ -1525,6 +1543,27 @@ select.wc-form-field {
 .wc-auth-field:read-only {
     background-color: var(--theme-surface-muted) !important;
     color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-field-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    z-index: 1;
+    width: 1rem;
+    height: 1rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--theme-text-muted) !important;
+}
+
+.wc-auth-limit {
+    color: var(--theme-text-muted);
+}
+
+.wc-auth-segment {
+    background-color: var(--theme-shell);
+    border-color: var(--theme-border);
 }
 
 .wc-auth-dialog svg {

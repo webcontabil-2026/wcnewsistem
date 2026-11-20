@@ -497,6 +497,8 @@ export default function ClientDashboard({
                         despesas={financialSummary.expenses}
                         saldo={financialBalance}
                         totalLancamentos={financialEntries.length}
+                        dadosGrafico={financialChartData}
+                        solicitacoes={solicitacoes}
                         exportandoPdf={isExportingFinancialPdf}
                         onExportarPdf={handleExportFinancialPdf}
                         onNovoLancamento={() => {
@@ -505,6 +507,7 @@ export default function ClientDashboard({
                             setFinancialEntryMessage("");
                             setIsFinancialEntryModalOpen(true);
                         }}
+                        onNavegar={setActiveTab}
                     />
                 )}
             </main>

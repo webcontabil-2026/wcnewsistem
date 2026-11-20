@@ -65,6 +65,7 @@
                 'landing',
                 'login',
                 'register',
+                'admin-login',
                 'dashboard',
             ];
         @endphp

@@ -21,6 +21,7 @@ class PublicPagesTest extends TestCase
             '/termos-de-uso',
             '/login',
             '/register',
+            '/admin/login',
         ];
 
         foreach ($publicPages as $page) {
