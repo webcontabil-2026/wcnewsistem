@@ -142,7 +142,7 @@ export default function ContadorDashboard({
             <aside
                 className={cn(
                     "hidden shrink-0 flex-col border-r border-white/10 bg-white/5 transition-[width] duration-300 lg:flex",
-                    recolhida ? "w-24" : "w-72",
+                    recolhida ? "w-24" : "w-80",
                 )}
             >
                 <div
@@ -150,7 +150,7 @@ export default function ContadorDashboard({
                         "flex min-h-24 items-center border-b border-white/10 px-5",
                         recolhida
                             ? "justify-center"
-                            : "justify-between gap-3",
+                            : "justify-between gap-2",
                     )}
                 >
                     <div
@@ -161,7 +161,7 @@ export default function ContadorDashboard({
                     >
                         <BrandLogo size="accountant" />
                         {!recolhida && (
-                            <span className="whitespace-nowrap text-lg font-extrabold tracking-tight text-white">
+                            <span className="whitespace-nowrap text-base font-extrabold tracking-tight text-white">
                                 WebContabil Worker
                             </span>
                         )}
@@ -170,10 +170,11 @@ export default function ContadorDashboard({
                         <button
                             type="button"
                             onClick={() => setRecolhida(true)}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white"
-                            aria-label="Recolher menu"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white/50 transition-colors hover:bg-white/5 hover:text-brand"
+                            aria-label="Recolher menu lateral"
+                            title="Recolher menu"
                         >
-                            <PanelLeftClose className="h-5 w-5" />
+                        <PanelLeftClose className="h-5 w-5" />
                         </button>
                     )}
                 </div>
@@ -182,8 +183,9 @@ export default function ContadorDashboard({
                     <button
                         type="button"
                         onClick={() => setRecolhida(false)}
-                        className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-xl text-white/50 hover:bg-white/5 hover:text-white"
-                        aria-label="Expandir menu"
+                        className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-xl text-white/50 transition-colors hover:bg-white/5 hover:text-brand"
+                        aria-label="Expandir menu lateral"
+                        title="Expandir menu"
                     >
                         <PanelLeftOpen className="h-5 w-5" />
                     </button>
@@ -486,7 +488,7 @@ function ItemNavegacao({
                       : "text-white/50 hover:bg-white/5 hover:text-white",
             )}
         >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
+            <span className="wc-sidebar-item-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
                 {icone}
             </span>
             {!recolhido && <span className="text-sm">{rotulo}</span>}
